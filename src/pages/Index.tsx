@@ -1,7 +1,28 @@
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Gamepad2, Puzzle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import MemoryGame from "@/components/games/MemoryGame";
 import SlidingPuzzle from "@/components/games/SlidingPuzzle";
+
+const games = [
+  {
+    id: "memory",
+    title: "Memory Game",
+    description: "Test your memory by matching pairs of cards",
+    icon: <Gamepad2 className="w-6 h-6" />,
+    component: MemoryGame,
+  },
+  {
+    id: "sliding",
+    title: "Sliding Puzzle",
+    description: "Arrange the numbers in order by sliding tiles",
+    icon: <Puzzle className="w-6 h-6" />,
+    component: SlidingPuzzle,
+  },
+];
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -36,7 +57,7 @@ const Index = () => {
           </motion.p>
         </div>
 
-        {isMobile && (
+        {isMobile ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -45,6 +66,27 @@ const Index = () => {
           >
             <MemoryGame />
             <SlidingPuzzle />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto"
+          >
+            {games.map((game) => (
+              <Link key={game.id} to={`/games/${game.id}`}>
+                <Card className="p-6 hover:bg-accent transition-colors group">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      {game.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold">{game.title}</h3>
+                  </div>
+                  <p className="text-muted-foreground">{game.description}</p>
+                </Card>
+              </Link>
+            ))}
           </motion.div>
         )}
       </section>

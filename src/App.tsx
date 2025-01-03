@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
+import MemoryGame from "./components/games/MemoryGame";
+import SlidingPuzzle from "./components/games/SlidingPuzzle";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +18,8 @@ const App = () => (
         <main className="pt-20">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/games/memory" element={<MemoryGame />} />
+            <Route path="/games/sliding" element={<SlidingPuzzle />} />
           </Routes>
         </main>
       </BrowserRouter>
