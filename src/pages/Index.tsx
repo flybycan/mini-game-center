@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import MemoryGame from "@/components/games/MemoryGame";
 import SlidingPuzzle from "@/components/games/SlidingPuzzle";
+import DiceGame from "@/components/games/DiceGame";
 
 const games = [
   {
@@ -37,7 +38,7 @@ const games = [
     title: "Dice Roll",
     description: "Roll the dice and test your luck",
     icon: <Dices className="w-6 h-6" />,
-    component: null,
+    component: DiceGame,
   },
   {
     id: "whack",
