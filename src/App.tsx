@@ -20,6 +20,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/games/memory" element={<MemoryGame />} />
             <Route path="/games/sliding" element={<SlidingPuzzle />} />
+            {/* Additional game routes will be added as they are implemented */}
           </Routes>
         </main>
       </BrowserRouter>

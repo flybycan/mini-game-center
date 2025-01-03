@@ -1,8 +1,18 @@
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Gamepad2, Puzzle } from "lucide-react";
+import { 
+  Gamepad2, 
+  Puzzle, 
+  Dices, 
+  Target, 
+  Blocks, 
+  Brain, 
+  Shapes, 
+  Timer, 
+  Zap,
+  Sparkles 
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import MemoryGame from "@/components/games/MemoryGame";
 import SlidingPuzzle from "@/components/games/SlidingPuzzle";
@@ -21,6 +31,62 @@ const games = [
     description: "Arrange the numbers in order by sliding tiles",
     icon: <Puzzle className="w-6 h-6" />,
     component: SlidingPuzzle,
+  },
+  {
+    id: "dice",
+    title: "Dice Roll",
+    description: "Roll the dice and test your luck",
+    icon: <Dices className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "whack",
+    title: "Whack-a-Mole",
+    description: "Test your reflexes by catching the moles",
+    icon: <Target className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "tetris",
+    title: "Mini Tetris",
+    description: "Classic block-stacking puzzle game",
+    icon: <Blocks className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "quiz",
+    title: "Quick Quiz",
+    description: "Test your knowledge with quick questions",
+    icon: <Brain className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "match3",
+    title: "Match Three",
+    description: "Match similar items in rows or columns",
+    icon: <Shapes className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "reaction",
+    title: "Reaction Time",
+    description: "Test your reaction speed",
+    icon: <Timer className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "snake",
+    title: "Snake Game",
+    description: "Classic snake game with modern twist",
+    icon: <Zap className="w-6 h-6" />,
+    component: null,
+  },
+  {
+    id: "bubble",
+    title: "Bubble Pop",
+    description: "Pop colorful bubbles in this relaxing game",
+    icon: <Sparkles className="w-6 h-6" />,
+    component: null,
   },
 ];
 
@@ -72,11 +138,15 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto"
           >
             {games.map((game) => (
-              <Link key={game.id} to={`/games/${game.id}`}>
-                <Card className="p-6 hover:bg-accent transition-colors group">
+              <Link 
+                key={game.id} 
+                to={`/games/${game.id}`}
+                className={game.component ? "" : "pointer-events-none opacity-50"}
+              >
+                <Card className="p-6 hover:bg-accent transition-colors group h-full">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       {game.icon}
@@ -84,6 +154,9 @@ const Index = () => {
                     <h3 className="text-xl font-semibold">{game.title}</h3>
                   </div>
                   <p className="text-muted-foreground">{game.description}</p>
+                  {!game.component && (
+                    <p className="text-sm text-muted-foreground mt-4 italic">Coming soon</p>
+                  )}
                 </Card>
               </Link>
             ))}
