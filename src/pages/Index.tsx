@@ -49,6 +49,13 @@ const games = [
     component: WhackAMole,
   },
   {
+    id: "snake",
+    title: "Snake Game",
+    description: "Classic snake game with modern twist",
+    icon: <Zap className="w-6 h-6" />,
+    component: SnakeGame,
+  },
+  {
     id: "tetris",
     title: "Mini Tetris",
     description: "Classic block-stacking puzzle game",
@@ -74,13 +81,6 @@ const games = [
     title: "Reaction Time",
     description: "Test your reaction speed",
     icon: <Timer className="w-6 h-6" />,
-    component: null,
-  },
-  {
-    id: "snake",
-    title: "Snake Game",
-    description: "Classic snake game with modern twist",
-    icon: <Zap className="w-6 h-6" />,
     component: null,
   },
   {
