@@ -11,6 +11,7 @@ import DiceGame from "./components/games/DiceGame";
 import WhackAMole from "./components/games/WhackAMole";
 import SnakeGame from "./components/games/SnakeGame";
 import BubblePop from "./components/games/BubblePop";
+import TetrisGame from "./components/games/TetrisGame";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/games/whack" element={<WhackAMole />} />
             <Route path="/games/snake" element={<SnakeGame />} />
             <Route path="/games/bubble" element={<BubblePop />} />
+            <Route path="/games/tetris" element={<TetrisGame />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -61,7 +61,7 @@ export const games = [
     title: "Mini Tetris",
     description: "Classic block-stacking puzzle game",
     icon: <Blocks className="w-6 h-6" />,
-    available: false,
+    available: true,
   },
   {
     id: "quiz",
