@@ -1,368 +1,309 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { motion } from "framer-motion";
 
-type TetrisBlock = {
+interface TetrisBlock {
   shape: boolean[][];
   x: number;
   y: number;
   color: string;
+}
+
+const SHAPES = {
+  I: {
+    shape: [
+      [true],
+      [true],
+      [true],
+      [true]
+    ],
+    color: "#FF0D0D"
+  },
+  O: {
+    shape: [
+      [true, true],
+      [true, true]
+    ],
+    color: "#4ECDC4"
+  },
+  T: {
+    shape: [
+      [true, true, true],
+      [false, true, false]
+    ],
+    color: "#45B7D1"
+  },
+  L: {
+    shape: [
+      [true, false],
+      [true, false],
+      [true, true]
+    ],
+    color: "#96CEB4"
+  },
+  J: {
+    shape: [
+      [false, true],
+      [false, true],
+      [true, true]
+    ],
+    color: "#FFEEAD"
+  },
+  S: {
+    shape: [
+      [false, true, true],
+      [true, true, false]
+    ],
+    color: "#FF6B6B"
+  },
+  Z: {
+    shape: [
+      [true, true, false],
+      [false, true, true]
+    ],
+    color: "#C7F464"
+  }
 };
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
-const INITIAL_SPEED = 1000;
-
-const SHAPES = [
-  {
-    shape: [[1, 1, 1, 1]], // I
-    color: "bg-cyan-500",
-  },
-  {
-    shape: [
-      [1, 1],
-      [1, 1],
-    ], // O
-    color: "bg-yellow-500",
-  },
-  {
-    shape: [
-      [1, 1, 1],
-      [0, 1, 0],
-    ], // T
-    color: "bg-purple-500",
-  },
-  {
-    shape: [
-      [1, 1, 0],
-      [0, 1, 1],
-    ], // S
-    color: "bg-green-500",
-  },
-  {
-    shape: [
-      [0, 1, 1],
-      [1, 1, 0],
-    ], // Z
-    color: "bg-red-500",
-  },
-  {
-    shape: [
-      [1, 0, 0],
-      [1, 1, 1],
-    ], // L
-    color: "bg-orange-500",
-  },
-  {
-    shape: [
-      [0, 0, 1],
-      [1, 1, 1],
-    ], // J
-    color: "bg-blue-500",
-  },
-];
+const GAME_SPEED = 1000;
 
 const TetrisGame = () => {
-  const [board, setBoard] = useState<string[][]>(() =>
+  const [board, setBoard] = useState<string[][]>(
     Array(BOARD_HEIGHT).fill(Array(BOARD_WIDTH).fill(""))
   );
-  const [currentBlock, setCurrentBlock] = useState<TetrisBlock | null>(null);
-  const [gameOver, setGameOver] = useState(false);
+  const [currentBlock, setCurrentBlock] = useState<TetrisBlock>({
+    shape: SHAPES.I.shape,
+    x: Math.floor(BOARD_WIDTH / 2) - 1,
+    y: 0,
+    color: SHAPES.I.color
+  });
   const [score, setScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   const createNewBlock = useCallback(() => {
-    const randomShape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    const shapes = Object.values(SHAPES);
+    const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
     return {
       shape: randomShape.shape,
-      x: Math.floor(BOARD_WIDTH / 2) - Math.floor(randomShape.shape[0].length / 2),
+      x: Math.floor(BOARD_WIDTH / 2) - 1,
       y: 0,
-      color: randomShape.color,
+      color: randomShape.color
     };
   }, []);
 
   const checkCollision = useCallback(
-    (block: TetrisBlock, boardState: string[][] = board) => {
-      for (let y = 0; y < block.shape.length; y++) {
-        for (let x = 0; x < block.shape[y].length; x++) {
-          if (block.shape[y][x]) {
-            const newX = block.x + x;
-            const newY = block.y + y;
-            if (
-              newX < 0 ||
-              newX >= BOARD_WIDTH ||
-              newY >= BOARD_HEIGHT ||
-              (newY >= 0 && boardState[newY][newX] !== "")
-            ) {
-              return true;
-            }
-          }
-        }
-      }
-      return false;
+    (block: TetrisBlock, boardToCheck: string[][] = board) => {
+      return block.shape.some((row, dy) =>
+        row.some((cell, dx) => {
+          if (!cell) return false;
+          const newY = block.y + dy;
+          const newX = block.x + dx;
+          return (
+            newY >= BOARD_HEIGHT ||
+            newX < 0 ||
+            newX >= BOARD_WIDTH ||
+            (newY >= 0 && boardToCheck[newY][newX])
+          );
+        })
+      );
     },
     [board]
   );
 
-  const mergeBlockToBoard = useCallback(
-    (block: TetrisBlock, boardState: string[][]) => {
-      const newBoard = boardState.map(row => [...row]);
-      for (let y = 0; y < block.shape.length; y++) {
-        for (let x = 0; x < block.shape[y].length; x++) {
-          if (block.shape[y][x]) {
-            const boardY = block.y + y;
-            if (boardY >= 0) {
-              newBoard[boardY][block.x + x] = block.color;
-            }
-          }
-        }
-      }
-      return newBoard;
-    },
-    []
-  );
-
   const moveBlock = useCallback(
-    (dx: number, dy: number) => {
-      if (!currentBlock || gameOver || isPaused) return;
-
+    (dx: number) => {
+      if (isPaused || isGameOver) return;
       const newBlock = {
         ...currentBlock,
-        x: currentBlock.x + dx,
-        y: currentBlock.y + dy,
+        x: currentBlock.x + dx
       };
-
       if (!checkCollision(newBlock)) {
         setCurrentBlock(newBlock);
-      } else if (dy > 0) {
-        // Block has landed
-        const newBoard = mergeBlockToBoard(currentBlock, board);
-        setBoard(newBoard);
-
-        // Check for completed lines
-        let completedLines = 0;
-        const updatedBoard = newBoard.filter((row) => {
-          if (row.every((cell) => cell !== "")) {
-            completedLines++;
-            return false;
-          }
-          return true;
-        });
-
-        while (updatedBoard.length < BOARD_HEIGHT) {
-          updatedBoard.unshift(Array(BOARD_WIDTH).fill(""));
-        }
-
-        if (completedLines > 0) {
-          const points = [40, 100, 300, 1200][completedLines - 1] || 0;
-          setScore((prev) => prev + points);
-          toast({
-            title: "Lines Cleared!",
-            description: `You cleared ${completedLines} lines! +${points} points`,
-          });
-        }
-
-        setBoard(updatedBoard);
-
-        // Create new block
-        const newBlock = createNewBlock();
-        if (checkCollision(newBlock, updatedBoard)) {
-          setGameOver(true);
-          toast({
-            title: "Game Over!",
-            description: `Final Score: ${score}`,
-            variant: "destructive",
-          });
-        } else {
-          setCurrentBlock(newBlock);
-        }
       }
     },
-    [currentBlock, gameOver, isPaused, board, createNewBlock, checkCollision, mergeBlockToBoard, score, toast]
+    [currentBlock, checkCollision, isPaused, isGameOver]
   );
 
   const rotateBlock = useCallback(() => {
-    if (!currentBlock || gameOver || isPaused) return;
-
-    const rotatedShape = currentBlock.shape[0].map((_, i) =>
-      currentBlock.shape.map((row) => row[i]).reverse()
+    if (isPaused || isGameOver) return;
+    const newShape = currentBlock.shape[0].map((_, index) =>
+      currentBlock.shape.map(row => row[index]).reverse()
     );
-
     const newBlock = {
       ...currentBlock,
-      shape: rotatedShape,
+      shape: newShape
     };
-
     if (!checkCollision(newBlock)) {
       setCurrentBlock(newBlock);
     }
-  }, [currentBlock, gameOver, isPaused, checkCollision]);
+  }, [currentBlock, checkCollision, isPaused, isGameOver]);
 
-  useEffect(() => {
-    if (!currentBlock && !gameOver) {
-      setCurrentBlock(createNewBlock());
+  const dropBlock = useCallback(() => {
+    if (isPaused || isGameOver) return;
+    const newBlock = {
+      ...currentBlock,
+      y: currentBlock.y + 1
+    };
+    if (!checkCollision(newBlock)) {
+      setCurrentBlock(newBlock);
+    } else {
+      // Merge block with board
+      const newBoard = board.map(row => [...row]);
+      currentBlock.shape.forEach((row, dy) => {
+        row.forEach((cell, dx) => {
+          if (cell && currentBlock.y + dy >= 0) {
+            newBoard[currentBlock.y + dy][currentBlock.x + dx] = currentBlock.color;
+          }
+        });
+      });
+
+      // Check for completed lines
+      let completedLines = 0;
+      for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+        if (newBoard[y].every(cell => cell !== "")) {
+          newBoard.splice(y, 1);
+          newBoard.unshift(Array(BOARD_WIDTH).fill(""));
+          completedLines++;
+          y++;
+        }
+      }
+
+      // Update score
+      if (completedLines > 0) {
+        const points = [0, 100, 300, 500, 800][completedLines];
+        setScore(score => score + points);
+        toast({
+          title: "Lines Cleared!",
+          description: `You cleared ${completedLines} lines! +${points} points`,
+        });
+      }
+
+      setBoard(newBoard);
+      const nextBlock = createNewBlock();
+      if (checkCollision(nextBlock, newBoard)) {
+        setIsGameOver(true);
+        toast({
+          title: "Game Over!",
+          description: `Final Score: ${score}`,
+          variant: "destructive",
+        });
+      } else {
+        setCurrentBlock(nextBlock);
+      }
     }
-  }, [currentBlock, gameOver, createNewBlock]);
+  }, [currentBlock, board, checkCollision, createNewBlock, isPaused, isGameOver, score, toast]);
 
   useEffect(() => {
-    if (gameOver || isPaused) return;
-
-    const interval = setInterval(() => {
-      moveBlock(0, 1);
-    }, INITIAL_SPEED);
-
+    if (isPaused || isGameOver) return;
+    const interval = setInterval(dropBlock, GAME_SPEED);
     return () => clearInterval(interval);
-  }, [gameOver, isPaused, moveBlock]);
+  }, [dropBlock, isPaused, isGameOver]);
 
   useEffect(() => {
-    if (gameOver || isPaused) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      switch (event.key) {
         case "ArrowLeft":
-          moveBlock(-1, 0);
+          moveBlock(-1);
           break;
         case "ArrowRight":
-          moveBlock(1, 0);
+          moveBlock(1);
           break;
         case "ArrowDown":
-          moveBlock(0, 1);
+          dropBlock();
           break;
         case "ArrowUp":
           rotateBlock();
           break;
         case " ":
-          setIsPaused((prev) => !prev);
+          setIsPaused(p => !p);
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [gameOver, isPaused, moveBlock, rotateBlock]);
+  }, [moveBlock, dropBlock, rotateBlock]);
 
   const renderBoard = () => {
     const displayBoard = board.map(row => [...row]);
-    if (currentBlock) {
-      for (let y = 0; y < currentBlock.shape.length; y++) {
-        for (let x = 0; x < currentBlock.shape[y].length; x++) {
-          if (currentBlock.shape[y][x]) {
-            const boardY = currentBlock.y + y;
-            if (boardY >= 0) {
-              displayBoard[boardY][currentBlock.x + x] = currentBlock.color;
-            }
-          }
+    currentBlock.shape.forEach((row, dy) => {
+      row.forEach((cell, dx) => {
+        if (
+          cell &&
+          currentBlock.y + dy >= 0 &&
+          currentBlock.y + dy < BOARD_HEIGHT &&
+          currentBlock.x + dx >= 0 &&
+          currentBlock.x + dx < BOARD_WIDTH
+        ) {
+          displayBoard[currentBlock.y + dy][currentBlock.x + dx] = currentBlock.color;
         }
-      }
-    }
+      });
+    });
 
     return displayBoard.map((row, y) => (
       <div key={y} className="flex">
         {row.map((cell, x) => (
-          <motion.div
-            key={`${x}-${y}`}
-            className={`w-6 h-6 border border-gray-700 ${
-              cell || "bg-gray-900"
-            }`}
-            initial={{ scale: 0.8 }}
-            animate={{ scale: cell ? 1 : 0.8 }}
-            transition={{ duration: 0.1 }}
+          <div
+            key={`${y}-${x}`}
+            className="w-6 h-6 border border-gray-700"
+            style={{ backgroundColor: cell || "transparent" }}
           />
         ))}
       </div>
     ));
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (gameOver || isPaused) return;
-    const touch = e.touches[0];
-    const touchStartX = touch.clientX;
-    const touchStartY = touch.clientY;
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-
-      if (Math.abs(deltaX) > 30) {
-        moveBlock(deltaX > 0 ? 1 : -1, 0);
-      }
-      if (deltaY > 30) {
-        moveBlock(0, 1);
-      }
-    };
-
-    const handleTouchEnd = () => {
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-
-    window.addEventListener("touchmove", handleTouchMove);
-    window.addEventListener("touchend", handleTouchEnd);
-  };
-
-  const handleDoubleTap = () => {
-    if (gameOver || isPaused) return;
-    rotateBlock();
-  };
-
   const resetGame = () => {
     setBoard(Array(BOARD_HEIGHT).fill(Array(BOARD_WIDTH).fill("")));
-    setCurrentBlock(null);
-    setGameOver(false);
+    setCurrentBlock(createNewBlock());
     setScore(0);
+    setIsGameOver(false);
     setIsPaused(false);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-      <div className="mb-4 flex items-center gap-4">
-        <h2 className="text-2xl font-bold">Score: {score}</h2>
-        <Button
-          variant="outline"
-          onClick={() => setIsPaused((prev) => !prev)}
-          disabled={gameOver}
-        >
-          {isPaused ? "Resume" : "Pause"}
-        </Button>
-        <Button variant="destructive" onClick={resetGame}>
-          Reset
-        </Button>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="mb-4 space-y-2">
+        <p className="text-xl font-bold">Score: {score}</p>
+        <div className="space-x-2">
+          <Button onClick={() => setIsPaused(p => !p)}>
+            {isPaused ? "Resume" : "Pause"}
+          </Button>
+          <Button onClick={resetGame}>New Game</Button>
+        </div>
       </div>
 
-      <div
-        className="border-4 border-gray-700 p-2 bg-gray-800"
-        onTouchStart={isMobile ? handleTouchStart : undefined}
-        onDoubleClick={isMobile ? handleDoubleTap : undefined}
-      >
+      <div className="bg-background border-2 border-primary p-2 rounded-lg">
         {renderBoard()}
       </div>
 
-      {(gameOver || isPaused) && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-gray-800 p-6 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">
-              {gameOver ? "Game Over!" : "Paused"}
+      {(isGameOver || isPaused) && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold">
+              {isGameOver ? "Game Over!" : "Paused"}
             </h2>
-            {gameOver && <p className="mb-4">Final Score: {score}</p>}
-            <Button onClick={gameOver ? resetGame : () => setIsPaused(false)}>
-              {gameOver ? "Play Again" : "Resume"}
+            {isGameOver && <p className="text-xl">Final Score: {score}</p>}
+            <Button onClick={isGameOver ? resetGame : () => setIsPaused(false)}>
+              {isGameOver ? "Play Again" : "Resume"}
             </Button>
           </div>
         </div>
       )}
 
-      {isMobile && (
-        <div className="mt-4 text-center text-sm text-gray-400">
-          <p>Swipe left/right to move</p>
-          <p>Swipe down to drop faster</p>
-          <p>Double tap to rotate</p>
-        </div>
-      )}
+      {/* Mobile Controls */}
+      <div className="md:hidden mt-8 grid grid-cols-3 gap-4">
+        <Button onClick={() => moveBlock(-1)}>←</Button>
+        <Button onClick={rotateBlock}>Rotate</Button>
+        <Button onClick={() => moveBlock(1)}>→</Button>
+        <Button onClick={dropBlock} className="col-span-3">
+          Drop
+        </Button>
+      </div>
     </div>
   );
 };
