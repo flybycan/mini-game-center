@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import MemoryGame from "@/components/games/MemoryGame";
 import SlidingPuzzle from "@/components/games/SlidingPuzzle";
 import DiceGame from "@/components/games/DiceGame";
+import WhackAMole from "@/components/games/WhackAMole";
 
 const games = [
   {
@@ -45,7 +46,7 @@ const games = [
     title: "Whack-a-Mole",
     description: "Test your reflexes by catching the moles",
     icon: <Target className="w-6 h-6" />,
-    component: null,
+    component: WhackAMole,
   },
   {
     id: "tetris",

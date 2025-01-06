@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import MemoryGame from "./components/games/MemoryGame";
 import SlidingPuzzle from "./components/games/SlidingPuzzle";
 import DiceGame from "./components/games/DiceGame";
+import WhackAMole from "./components/games/WhackAMole";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/games/memory" element={<MemoryGame />} />
             <Route path="/games/sliding" element={<SlidingPuzzle />} />
             <Route path="/games/dice" element={<DiceGame />} />
+            <Route path="/games/whack" element={<WhackAMole />} />
             {/* Additional game routes will be added as they are implemented */}
           </Routes>
         </main>
