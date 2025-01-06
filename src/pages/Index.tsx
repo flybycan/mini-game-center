@@ -18,6 +18,7 @@ import MemoryGame from "@/components/games/MemoryGame";
 import SlidingPuzzle from "@/components/games/SlidingPuzzle";
 import DiceGame from "@/components/games/DiceGame";
 import WhackAMole from "@/components/games/WhackAMole";
+import SnakeGame from "@/components/games/SnakeGame";
 
 const games = [
   {
