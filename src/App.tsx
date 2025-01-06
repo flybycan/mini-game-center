@@ -10,6 +10,7 @@ import SlidingPuzzle from "./components/games/SlidingPuzzle";
 import DiceGame from "./components/games/DiceGame";
 import WhackAMole from "./components/games/WhackAMole";
 import SnakeGame from "./components/games/SnakeGame";
+import BubblePop from "./components/games/BubblePop";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,7 @@ const App = () => (
             <Route path="/games/dice" element={<DiceGame />} />
             <Route path="/games/whack" element={<WhackAMole />} />
             <Route path="/games/snake" element={<SnakeGame />} />
-            {/* Additional game routes will be added as they are implemented */}
+            <Route path="/games/bubble" element={<BubblePop />} />
           </Routes>
         </main>
       </BrowserRouter>
