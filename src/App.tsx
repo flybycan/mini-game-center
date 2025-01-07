@@ -16,6 +16,7 @@ import ReactionTime from "./components/games/ReactionTime";
 import MatchThree from "./components/games/MatchThree";
 import QuickQuiz from "./components/games/QuickQuiz";
 import ColorMatch from "./components/games/ColorMatch";
+import TypingSpeed from "./components/games/TypingSpeed";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/games/match3" element={<MatchThree />} />
             <Route path="/games/quiz" element={<QuickQuiz />} />
             <Route path="/games/color" element={<ColorMatch />} />
+            <Route path="/games/typing" element={<TypingSpeed />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -11,7 +11,8 @@ import {
   Timer,
   Zap,
   Circle,
-  Palette
+  Palette,
+  Keyboard
 } from "lucide-react";
 
 export const games = [
@@ -90,6 +91,13 @@ export const games = [
     title: "Color Match",
     description: "快速判断颜色是否匹配",
     icon: <Palette className="w-6 h-6" />,
+    available: true,
+  },
+  {
+    id: "typing",
+    title: "Typing Speed",
+    description: "测试你的打字速度",
+    icon: <Keyboard className="w-6 h-6" />,
     available: true,
   },
 ];
