@@ -10,7 +10,8 @@ import {
   Shapes, 
   Timer,
   Zap,
-  Circle
+  Circle,
+  Palette
 } from "lucide-react";
 
 export const games = [
@@ -82,6 +83,13 @@ export const games = [
     title: "Quick Quiz",
     description: "Test your knowledge with quick questions",
     icon: <Brain className="w-6 h-6" />,
+    available: true,
+  },
+  {
+    id: "color",
+    title: "Color Match",
+    description: "快速判断颜色是否匹配",
+    icon: <Palette className="w-6 h-6" />,
     available: true,
   },
 ];

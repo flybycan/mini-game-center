@@ -15,6 +15,7 @@ import TetrisGame from "./components/games/TetrisGame";
 import ReactionTime from "./components/games/ReactionTime";
 import MatchThree from "./components/games/MatchThree";
 import QuickQuiz from "./components/games/QuickQuiz";
+import ColorMatch from "./components/games/ColorMatch";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/games/reaction" element={<ReactionTime />} />
             <Route path="/games/match3" element={<MatchThree />} />
             <Route path="/games/quiz" element={<QuickQuiz />} />
+            <Route path="/games/color" element={<ColorMatch />} />
           </Routes>
         </main>
       </BrowserRouter>
