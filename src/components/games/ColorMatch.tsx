@@ -118,7 +118,6 @@ const ColorMatch = () => {
         </>
       )}
     </div>
-  </div>
   );
 };
 
