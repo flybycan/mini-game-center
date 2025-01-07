@@ -89,14 +89,14 @@ export const games = [
   {
     id: "color",
     title: "Color Match",
-    description: "快速判断颜色是否匹配",
+    description: "Quickly determine if the colors match",
     icon: <Palette className="w-6 h-6" />,
     available: true,
   },
   {
     id: "typing",
     title: "Typing Speed",
-    description: "测试你的打字速度",
+    description: "Test your typing speed",
     icon: <Keyboard className="w-6 h-6" />,
     available: true,
   },

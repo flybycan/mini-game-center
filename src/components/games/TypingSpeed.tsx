@@ -43,7 +43,7 @@ const TypingSpeed = () => {
       setUserInput("");
       setCurrentWord(getRandomWord());
       toast({
-        title: "正确!",
+        title: "right!",
         duration: 1000,
       });
     }
@@ -60,8 +60,8 @@ const TypingSpeed = () => {
       if (score > bestScore) {
         setBestScore(score);
         toast({
-          title: "新记录!",
-          description: `你的最高分是: ${score}`,
+          title: "New Record!",
+          description: `Your highest score is: ${score}`,
         });
       }
     }
@@ -70,22 +70,22 @@ const TypingSpeed = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">打字速度</h1>
+        <h1 className="text-4xl font-bold">Typing speed</h1>
         <p className="text-muted-foreground">
-          快速准确地输入显示的单词
+        Enter the displayed words quickly and accurately
         </p>
       </div>
 
       {!isPlaying ? (
         <Button onClick={startGame} size="lg">
-          开始游戏
+          Play the game
         </Button>
       ) : (
         <>
           <div className="text-center space-y-4">
-            <p className="text-2xl">时间: {timeLeft}秒</p>
-            <p className="text-xl">得分: {score}</p>
-            <p className="text-sm text-muted-foreground">最高分: {bestScore}</p>
+            <p className="text-2xl">time: {timeLeft}s</p>
+            <p className="text-xl">score: {score}</p>
+            <p className="text-sm text-muted-foreground">Top score: {bestScore}</p>
           </div>
 
           <div className="text-center space-y-8 w-full max-w-md">
@@ -98,7 +98,7 @@ const TypingSpeed = () => {
               type="text"
               value={userInput}
               onChange={handleInputChange}
-              placeholder="输入单词..."
+              placeholder="Enter the word..."
               className="text-center text-xl"
               autoComplete="off"
             />

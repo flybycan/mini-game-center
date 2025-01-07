@@ -33,7 +33,7 @@ const DiceGame = () => {
       setIsRolling(false);
       
       if (final1 === final2) {
-        toast.success('双对！');
+        toast.success('Double pairs!');
       }
     }, 1000);
   };
@@ -47,10 +47,10 @@ const DiceGame = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Dices className="w-5 h-5" />
-          骰子游戏
+          Dice game
         </h3>
         <Button variant="outline" size="sm" onClick={() => setRolls(0)}>
-          重置
+          Reset
         </Button>
       </div>
       
@@ -82,11 +82,11 @@ const DiceGame = () => {
         onClick={rollDice} 
         disabled={isRolling}
       >
-        {isRolling ? '骰子滚动中...' : '掷骰子'}
+        {isRolling ? 'The dice are rolling...' : 'Roll the dice'}
       </Button>
 
       <p className="text-sm text-muted-foreground mt-4 text-center">
-        投掷次数: {rolls}
+      Number of throws: {rolls}
       </p>
     </Card>
   );

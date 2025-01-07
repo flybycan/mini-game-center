@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const colors = [
-  { name: "红色", value: "#EF4444" },
-  { name: "蓝色", value: "#3B82F6" },
-  { name: "绿色", value: "#10B981" },
-  { name: "黄色", value: "#F59E0B" },
+  { name: "Red", value: "#EF4444" },
+  { name: "Blue", value: "#3B82F6" },
+  { name: "Green", value: "#10B981" },
+  { name: "Yellow", value: "#F59E0B" },
 ];
 
 const ColorMatch = () => {
@@ -38,12 +38,12 @@ const ColorMatch = () => {
     if (playerAnswer === isMatching) {
       setScore((prev) => prev + 1);
       toast({
-        title: "正确!",
+        title: "right!",
         duration: 1000,
       });
     } else {
       toast({
-        title: "错误!",
+        title: "wrong!",
         variant: "destructive",
         duration: 1000,
       });
@@ -62,8 +62,8 @@ const ColorMatch = () => {
       if (score > bestScore) {
         setBestScore(score);
         toast({
-          title: "新记录!",
-          description: `你的最高分是: ${score}`,
+          title: "New record!",
+          description: `Your highest score is: ${score}`,
         });
       }
     }
@@ -72,22 +72,22 @@ const ColorMatch = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">颜色匹配</h1>
+        <h1 className="text-4xl font-bold">Color matching</h1>
         <p className="text-muted-foreground">
-          判断文字与颜色是否匹配
+        Determine if the text matches the color
         </p>
       </div>
 
       {!gameStarted ? (
         <Button onClick={startGame} size="lg">
-          开始游戏
+          Play the game
         </Button>
       ) : (
         <>
           <div className="text-center space-y-4">
-            <p className="text-2xl">时间: {timeLeft}秒</p>
-            <p className="text-xl">得分: {score}</p>
-            <p className="text-sm text-muted-foreground">最高分: {bestScore}</p>
+            <p className="text-2xl">time: {timeLeft}second</p>
+            <p className="text-xl">score: {score}</p>
+            <p className="text-sm text-muted-foreground">Top score: {bestScore}</p>
           </div>
 
           <div className="text-center space-y-8">
@@ -104,14 +104,14 @@ const ColorMatch = () => {
                 variant="outline"
                 onClick={() => handleAnswer(true)}
               >
-                匹配
+                Matching
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => handleAnswer(false)}
               >
-                不匹配
+                Mismatch
               </Button>
             </div>
           </div>

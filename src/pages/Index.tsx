@@ -12,7 +12,7 @@ const Index = () => {
     <div className="page-transition">
       <section className="min-h-screen flex flex-col items-center justify-center section-padding">
         <Hero />
-        {isMobile ? (
+        {/* {isMobile ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -22,7 +22,7 @@ const Index = () => {
             <MemoryGame />
             <SlidingPuzzle />
           </motion.div>
-        ) : (
+        ) : ( */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -30,7 +30,7 @@ const Index = () => {
           >
             <GameGrid />
           </motion.div>
-        )}
+        {/* )} */}
       </section>
     </div>
   );

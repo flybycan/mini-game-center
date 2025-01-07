@@ -37,7 +37,7 @@ const WhackAMole = () => {
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem('whackamole-highscore', score.toString());
-      toast.success('新记录！');
+      toast.success('New record!');
     }
   }, [score, highScore]);
 
@@ -73,14 +73,14 @@ const WhackAMole = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Target className="w-5 h-5" />
-          打地鼠
+          Whack-a-mole
         </h3>
-        <div className="text-sm">最高分: {highScore}</div>
+        <div className="text-sm">Top score: {highScore}</div>
       </div>
 
       <div className="mb-4 flex justify-between items-center">
-        <div className="text-sm">得分: {score}</div>
-        <div className="text-sm">时间: {timeLeft}s</div>
+        <div className="text-sm">score: {score}</div>
+        <div className="text-sm">time: {timeLeft}s</div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 aspect-square mb-4">
@@ -120,7 +120,7 @@ const WhackAMole = () => {
         onClick={startGame}
         disabled={isPlaying}
       >
-        {isPlaying ? '游戏进行中...' : '开始游戏'}
+        {isPlaying ? 'Game in progress...' : 'Play the game'}
       </Button>
     </Card>
   );

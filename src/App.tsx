@@ -17,6 +17,7 @@ import MatchThree from "./components/games/MatchThree";
 import QuickQuiz from "./components/games/QuickQuiz";
 import ColorMatch from "./components/games/ColorMatch";
 import TypingSpeed from "./components/games/TypingSpeed";
+import AboutPage from "./components/about";
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,10 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <Navigation />
-        <main className="pt-20">
+        <main className=' mt-16 flex justify-center items-center  '>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/games/memory" element={<MemoryGame />} />
             <Route path="/games/sliding" element={<SlidingPuzzle />} />
             <Route path="/games/dice" element={<DiceGame />} />
