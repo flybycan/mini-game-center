@@ -71,17 +71,17 @@ export const games = [
     available: true,
   },
   {
-    id: "quiz",
-    title: "Quick Quiz",
-    description: "Test your knowledge with quick questions",
-    icon: <Brain className="w-6 h-6" />,
-    available: false,
-  },
-  {
     id: "match3",
     title: "Match Three",
     description: "Match similar items in rows or columns",
     icon: <Shapes className="w-6 h-6" />,
+    available: true,
+  },
+  {
+    id: "quiz",
+    title: "Quick Quiz",
+    description: "Test your knowledge with quick questions",
+    icon: <Brain className="w-6 h-6" />,
     available: false,
   },
 ];
