@@ -82,7 +82,7 @@ export const games = [
     title: "Quick Quiz",
     description: "Test your knowledge with quick questions",
     icon: <Brain className="w-6 h-6" />,
-    available: false,
+    available: true,
   },
 ];
 
