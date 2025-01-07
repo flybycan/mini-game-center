@@ -64,6 +64,13 @@ export const games = [
     available: true,
   },
   {
+    id: "reaction",
+    title: "Reaction Time",
+    description: "Test your reaction speed",
+    icon: <Timer className="w-6 h-6" />,
+    available: true,
+  },
+  {
     id: "quiz",
     title: "Quick Quiz",
     description: "Test your knowledge with quick questions",
@@ -75,13 +82,6 @@ export const games = [
     title: "Match Three",
     description: "Match similar items in rows or columns",
     icon: <Shapes className="w-6 h-6" />,
-    available: false,
-  },
-  {
-    id: "reaction",
-    title: "Reaction Time",
-    description: "Test your reaction speed",
-    icon: <Timer className="w-6 h-6" />,
     available: false,
   },
 ];
