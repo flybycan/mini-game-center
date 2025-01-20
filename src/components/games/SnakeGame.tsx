@@ -2,42 +2,71 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 type Position = { x: number; y: number };
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
-const INITIAL_SPEED = 150;
-const INITIAL_SNAKE: Position[] = [{ x: 10, y: 10 }];
+const BASE_SPEED = 200; // 降低基础速度，原来是较快的
+const SPEED_INCREMENT = 10; // 保持相同的速度增量
+// 定义安全区域的边距
+const SAFE_MARGIN = 4;
+
+// 生成随机的初始蛇位置
+const getRandomInitialPosition = (): Position => {
+  return {
+    x: SAFE_MARGIN + Math.floor(Math.random() * (GRID_SIZE - 2 * SAFE_MARGIN)),
+    y: SAFE_MARGIN + Math.floor(Math.random() * (GRID_SIZE - 2 * SAFE_MARGIN))
+  };
+};
+
+const INITIAL_SNAKE: Position[] = [getRandomInitialPosition()];
 
 const SnakeGame = () => {
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>({ x: 15, y: 15 });
   const [direction, setDirection] = useState<Direction>('RIGHT');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('snake-highscore');
+    return saved ? parseInt(saved) : 0;
+  });
+
+  // 根据分数计算游戏速度
+  const getCurrentSpeed = useCallback(() => {
+    return Math.max(BASE_SPEED - Math.floor(score / 5) * SPEED_INCREMENT, 50);
+  }, [score]);
 
   const generateFood = useCallback(() => {
     const newFood = {
       x: Math.floor(Math.random() * GRID_SIZE),
       y: Math.floor(Math.random() * GRID_SIZE),
     };
+    // 确保食物不会生成在蛇身上
+    if (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
+      generateFood();
+      return;
+    }
     setFood(newFood);
-  }, []);
+    // 播放食物生成音效
+    new Audio('/food-appear.mp3').play().catch(() => {});
+  }, [snake]);
 
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
     setDirection('RIGHT');
     setScore(0);
     setIsPlaying(false);
+    setIsPaused(false);
     generateFood();
   };
 
   const checkCollision = (head: Position): boolean => {
-    // Check wall collision
+    // 检查墙壁碰撞
     if (
       head.x < 0 ||
       head.x >= GRID_SIZE ||
@@ -46,12 +75,12 @@ const SnakeGame = () => {
     ) {
       return true;
     }
-    // Check self collision
+    // 检查自身碰撞
     return snake.some((segment) => segment.x === head.x && segment.y === head.y);
   };
 
   const moveSnake = useCallback(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isPaused) return;
 
     const head = { ...snake[0] };
     switch (direction) {
@@ -71,9 +100,12 @@ const SnakeGame = () => {
 
     if (checkCollision(head)) {
       setIsPlaying(false);
+      // 播放游戏结束音效
+      new Audio('/game-over.mp3').play().catch(() => {});
       if (score > highScore) {
         setHighScore(score);
-        toast.success('New High Score!');
+        localStorage.setItem('snake-highscore', score.toString());
+        toast.success('New Record!');
       }
       toast.error('Game Over!');
       return;
@@ -81,13 +113,15 @@ const SnakeGame = () => {
 
     const newSnake = [head, ...snake];
     if (head.x === food.x && head.y === food.y) {
+      // 播放吃到食物音效
+      new Audio('/eat-food.mp3').play().catch(() => {});
       setScore((prev) => prev + 1);
       generateFood();
     } else {
       newSnake.pop();
     }
     setSnake(newSnake);
-  }, [snake, direction, food, isPlaying, score, highScore, generateFood]);
+  }, [snake, direction, food, isPlaying, isPaused, score, highScore, generateFood]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -106,6 +140,9 @@ const SnakeGame = () => {
         case 'ArrowRight':
           if (direction !== 'LEFT') setDirection('RIGHT');
           break;
+        case ' ':
+          setIsPaused(p => !p);
+          break;
       }
     };
 
@@ -114,14 +151,14 @@ const SnakeGame = () => {
   }, [direction, isPlaying]);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isPaused) return;
     
-    const gameLoop = setInterval(moveSnake, INITIAL_SPEED);
+    const gameLoop = setInterval(moveSnake, getCurrentSpeed());
     return () => clearInterval(gameLoop);
-  }, [moveSnake, isPlaying]);
+  }, [moveSnake, isPlaying, isPaused, getCurrentSpeed]);
 
   const handleDirectionClick = (newDirection: Direction) => {
-    if (!isPlaying) return;
+    if (!isPlaying || isPaused) return;
     
     switch (newDirection) {
       case 'UP':
@@ -139,33 +176,90 @@ const SnakeGame = () => {
     }
   };
 
+  // 处理触摸滑动
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPlaying || isPaused) return;
+
+      const touchEndX = e.touches[0].clientX;
+      const touchEndY = e.touches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 50 && direction !== 'LEFT') {
+          setDirection('RIGHT');
+        } else if (deltaX < -50 && direction !== 'RIGHT') {
+          setDirection('LEFT');
+        }
+      } else {
+        if (deltaY > 50 && direction !== 'UP') {
+          setDirection('DOWN');
+        } else if (deltaY < -50 && direction !== 'DOWN') {
+          setDirection('UP');
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [direction, isPlaying, isPaused]);
+
   return (
-    <Card className="p-4 w-full max-w-sm mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-sm">Score: {score}</p>
+    <Card className="p-6 w-full max-w-md mx-auto flex flex-col gap-4 min-h-[80vh]">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-lg font-semibold">Score: {score}</p>
           <p className="text-sm text-muted-foreground">High Score: {highScore}</p>
+          <p className="text-xs text-muted-foreground">Speed: {Math.round(1000 / getCurrentSpeed())}x</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (isPlaying) {
-              resetGame();
-            } else {
-              setIsPlaying(true);
-            }
-          }}
-        >
-          {isPlaying ? 'Reset' : 'Start'}
-        </Button>
+        <div className="space-x-2">
+          {isPlaying && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPaused(p => !p)}
+            >
+              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (isPlaying) {
+                resetGame();
+              } else {
+                resetGame();
+                setIsPlaying(true);
+              }
+            }}
+          >
+            {isPlaying ? 'Reset' : 'Start Game'}
+          </Button>
+        </div>
       </div>
 
       <div 
-        className="relative bg-secondary rounded-lg overflow-hidden mb-4"
+        className={`relative bg-secondary rounded-lg overflow-hidden mx-auto ${isPaused ? 'opacity-50' : ''}`}
         style={{
           width: GRID_SIZE * CELL_SIZE,
           height: GRID_SIZE * CELL_SIZE,
+          maxWidth: '100%',
+          aspectRatio: '1',
         }}
       >
         {snake.map((segment, index) => (
@@ -191,41 +285,53 @@ const SnakeGame = () => {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-2 max-w-[200px] mx-auto">
+      <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto mt-auto">
         <div />
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleDirectionClick('UP')}
+          disabled={!isPlaying || isPaused}
+          className="aspect-square"
         >
-          <ArrowUp />
+          <ArrowUp className="w-6 h-6" />
         </Button>
         <div />
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleDirectionClick('LEFT')}
+          disabled={!isPlaying || isPaused}
+          className="aspect-square"
         >
-          <ArrowLeft />
+          <ArrowLeft className="w-6 h-6" />
         </Button>
-        <div />
+        <div className="flex items-center justify-center text-sm font-medium text-muted-foreground">
+          Controls
+        </div>
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleDirectionClick('RIGHT')}
+          disabled={!isPlaying || isPaused}
+          className="aspect-square"
         >
-          <ArrowRight />
+          <ArrowRight className="w-6 h-6" />
         </Button>
         <div />
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleDirectionClick('DOWN')}
+          disabled={!isPlaying || isPaused}
+          className="aspect-square"
         >
-          <ArrowDown />
+          <ArrowDown className="w-6 h-6" />
         </Button>
         <div />
       </div>
+
+
     </Card>
   );
 };

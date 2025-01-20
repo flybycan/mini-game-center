@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
@@ -20,17 +23,41 @@ import QuickQuiz from "./components/games/QuickQuiz";
 import ColorMatch from "./components/games/ColorMatch";
 import TypingSpeed from "./components/games/TypingSpeed";
 import AboutPage from "./components/about";
+import React from "react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { i18n, t } = useTranslation();
   const isGamePage = location.pathname.includes('/games/');
+  const [currentLang, setCurrentLang] = React.useState(i18n.language);
+
+  React.useEffect(() => {
+    setCurrentLang(i18n.language);
+  }, [i18n.language]);
 
   return (
     <>
       {!isGamePage && <Navigation />}
+      {/* <div className="fixed top-4 right-4 z-50">
+        <Select
+          value={currentLang}
+          onValueChange={(value) => {
+            setCurrentLang(value);
+            i18n.changeLanguage(value);
+          }}
+        >
+          <SelectTrigger className="w-[100px] bg-background/50 backdrop-blur-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="zh">中文</SelectItem>
+          </SelectContent>
+        </Select>
+      </div> */}
       <main className='mt-16 flex justify-center items-center relative'>
         {isGamePage && (
           <Button

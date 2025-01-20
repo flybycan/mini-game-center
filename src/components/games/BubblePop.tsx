@@ -1,142 +1,168 @@
-import { useState, useEffect, useCallback } from "react";
+import { useRef } from "react";
 import { Circle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Bubble {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-  size: number;
-}
-
-const COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD"];
-const GAME_DURATION = 30; // seconds
+import { useBubbleGame, GAME_DURATION, COMBO_THRESHOLD, DifficultyLevel } from "@/hooks/use-bubble-game";
 
 const BubblePop = () => {
-  const [bubbles, setBubbles] = useState<Bubble[]>([]);
-  const [score, setScore] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [highScore, setHighScore] = useState(() => {
-    const saved = localStorage.getItem("bubblePopHighScore");
-    return saved ? parseInt(saved) : 0;
-  });
-  
-  const { toast } = useToast();
-
-  const createBubble = useCallback(() => {
-    const bubble: Bubble = {
-      id: Math.random(),
-      x: Math.random() * (window.innerWidth - 60),
-      y: Math.random() * (window.innerHeight - 200),
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      size: Math.random() * 20 + 40,
-    };
-    return bubble;
-  }, []);
-
-  const startGame = () => {
-    setIsPlaying(true);
-    setScore(0);
-    setTimeLeft(GAME_DURATION);
-    setBubbles([]);
-  };
-
-  const popBubble = (id: number) => {
-    setBubbles((prev) => prev.filter((bubble) => bubble.id !== id));
-    setScore((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const bubbleInterval = setInterval(() => {
-      setBubbles((prev) => {
-        if (prev.length >= 10) return prev;
-        return [...prev, createBubble()];
-      });
-    }, 1000);
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsPlaying(false);
-          clearInterval(bubbleInterval);
-          if (score > highScore) {
-            setHighScore(score);
-            localStorage.setItem("bubblePopHighScore", score.toString());
-            toast({
-              title: "New High Score!",
-              description: `Congratulations! You set a new record: ${score}`,
-            });
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(bubbleInterval);
-      clearInterval(timer);
-    };
-  }, [isPlaying, createBubble, score, highScore, toast]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const {
+    bubbles,
+    score,
+    combo,
+    timeLeft,
+    isPlaying,
+    difficulty,
+    highScore,
+    setDifficulty,
+    startGame,
+    popBubble
+  } = useBubbleGame(containerRef);
 
   return (
-    <div className="min-h-screen relative overflow-hidden p-4">
-      <div className="fixed top-4 left-4 right-4 flex justify-between items-center z-10 glass p-4 rounded-lg">
-        <div className="space-y-2">
-          <p className="text-lg font-semibold">Score: {score}</p>
-          <p className="text-sm text-muted-foreground">High Score: {highScore}</p>
-        </div>
-        <div className="space-y-2 text-right">
-          <p className="text-lg font-semibold">Time: {timeLeft}s</p>
-          {!isPlaying && (
-            <Button onClick={startGame}>
-              {timeLeft === GAME_DURATION ? "Start Game" : "Play Again"}
-            </Button>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80">
+      <div className="w-[80vw] h-[80vh] p-6 flex flex-col bg-background/40 backdrop-blur-sm rounded-xl border border-primary/20 shadow-lg">
+        <div className="flex justify-between items-center glass p-4 rounded-xl mb-4 bg-background/60 border border-primary/20 shadow-md">
+          <div className="space-y-3">
+            <div className="flex items-baseline gap-4">
+              <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-foreground">
+                {score}
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">最高分: {highScore}</p>
+            </div>
+            {combo >= COMBO_THRESHOLD && (
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-500"
+              >
+                <span className="text-sm font-semibold">{combo} 连击</span>
+                <span className="text-lg">🔥</span>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="text-right space-y-3">
+            <div className="text-xl font-bold">
+              <motion.span
+                key={timeLeft}
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className={timeLeft <= 10 ? 'text-red-500' : ''}
+              >
+                {timeLeft}s
+              </motion.span>
+            </div>
+            {!isPlaying && (
+              <div className="space-y-3">
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
+                  className="block w-full p-2 rounded-lg border border-primary/20 bg-background/60 backdrop-blur-sm transition-colors hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary"
+                >
+                  <option value="easy">简单</option>
+                  <option value="normal">普通</option>
+                  <option value="hard">困难</option>
+                </select>
+                <Button 
+                  onClick={startGame}
+                  className="w-full transition-all hover:scale-105 active:scale-95"
+                  size="lg"
+                >
+                  {timeLeft === GAME_DURATION ? "开始游戏" : "再来一局"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isPlaying &&
-          bubbles.map((bubble) => (
-            <motion.div
-              key={bubble.id}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              style={{
-                position: "absolute",
-                left: bubble.x,
-                top: bubble.y,
-                cursor: "pointer",
-              }}
-              onClick={() => popBubble(bubble.id)}
-              className="transition-transform hover:scale-110"
-            >
-              <Circle
-                fill={bubble.color}
-                size={bubble.size}
-                className="animate-bounce"
-              />
-            </motion.div>
-          ))}
-      </AnimatePresence>
+      <div 
+        ref={containerRef} 
+        className="flex-1 relative overflow-hidden rounded-xl border-2 border-dashed border-primary/20 bg-gradient-to-b from-background/40 to-background/20 backdrop-blur-sm"
+      >
+        <AnimatePresence>
+          {isPlaying &&
+            bubbles.map((bubble) => (
+              <motion.div
+                key={bubble.id}
+                initial={{ scale: 0, y: containerRef.current?.clientHeight || 600 }}
+                animate={{
+                  scale: 1,
+                  y: [null, -100],
+                  x: bubble.frozen ? bubble.x : [
+                    bubble.x - bubble.amplitude! * Math.sin(bubble.angle!),
+                    bubble.x + bubble.amplitude! * Math.sin(bubble.angle!)
+                  ]
+                }}
+                transition={{
+                  scale: { duration: 0.2 },
+                  y: {
+                    duration: bubble.frozen ? 8 : 4 / (bubble.speed || 1),
+                    ease: "linear"
+                  },
+                  x: {
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }
+                }}
+                exit={{ scale: 0, opacity: 0 }}
+                style={{
+                  position: "absolute",
+                  left: bubble.x,
+                  bottom: 0,
+                }}
+                onClick={() => popBubble(bubble.id)}
+                className="cursor-pointer transition-transform hover:scale-110 active:scale-90"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Circle
+                  fill={bubble.color}
+                  size={bubble.size}
+                  className={`
+                    ${bubble.type === 'special' ? 'animate-pulse shadow-lg shadow-yellow-500/50' : ''}
+                    ${bubble.type === 'ice' ? 'shadow-lg shadow-cyan-500/50' : ''}
+                    ${bubble.type === 'bomb' ? 'shadow-lg shadow-red-500/50' : ''}
+                    ${bubble.frozen ? 'opacity-50 blur-[0.5px]' : ''}
+                  `}
+                />
+              </motion.div>
+            ))}
+        </AnimatePresence>
+      </div>
 
-      {!isPlaying && timeLeft === 0 && (
-        <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold">Game Over!</h2>
-            <p className="text-xl">Final Score: {score}</p>
-            <Button onClick={startGame}>Play Again</Button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {!isPlaying && timeLeft === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-md"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="text-center space-y-6 p-8 rounded-xl bg-background/60 border border-primary/20 shadow-xl"
+            >
+              <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-foreground">
+                游戏结束！
+              </h2>
+              <p className="text-2xl font-semibold">最终得分: {score}</p>
+              <Button 
+                onClick={startGame} 
+                size="lg"
+                className="transition-all hover:scale-105 active:scale-95"
+              >
+                再来一局
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
