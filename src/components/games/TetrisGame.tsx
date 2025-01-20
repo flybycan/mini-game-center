@@ -266,9 +266,9 @@ const TetrisGame = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="mb-4 space-y-2">
-        <p className="text-xl font-bold">Score: {score}</p>
+    <div className="h-[calc(100vh-2rem)] flex flex-col items-center justify-center max-w-lg mx-auto px-4">
+      <div className="flex-none mb-2">
+        <p className="text-xl font-bold mb-2">Score: {score}</p>
         <div className="space-x-2">
           <Button onClick={() => setIsPaused(p => !p)}>
             {isPaused ? "Resume" : "Pause"}
@@ -277,8 +277,10 @@ const TetrisGame = () => {
         </div>
       </div>
 
-      <div className="bg-background border-2 border-primary p-2 rounded-lg">
-        {renderBoard()}
+      <div className="flex-1 flex items-center max-h-[70vh] w-full">
+        <div className="bg-background border-2 border-primary p-2 rounded-lg mx-auto">
+          {renderBoard()}
+        </div>
       </div>
 
       {(isGameOver || isPaused) && (
@@ -296,11 +298,11 @@ const TetrisGame = () => {
       )}
 
       {/* Mobile Controls */}
-      <div className="md:hidden mt-8 grid grid-cols-3 gap-4">
-        <Button onClick={() => moveBlock(-1)}>←</Button>
-        <Button onClick={rotateBlock}>Rotate</Button>
-        <Button onClick={() => moveBlock(1)}>→</Button>
-        <Button onClick={dropBlock} className="col-span-3">
+      <div className="md:hidden flex-none mt-2 w-full max-w-[240px] grid grid-cols-3 gap-2">
+        <Button size="sm" onClick={() => moveBlock(-1)}>←</Button>
+        <Button size="sm" onClick={rotateBlock}>Rotate</Button>
+        <Button size="sm" onClick={() => moveBlock(1)}>→</Button>
+        <Button size="sm" onClick={dropBlock} className="col-span-3">
           Drop
         </Button>
       </div>
