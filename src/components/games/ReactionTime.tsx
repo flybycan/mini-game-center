@@ -86,7 +86,7 @@ const ReactionTime = () => {
       )}
 
       <Button onClick={startGame} variant="outline">
-        Reset
+        {t('common.reset')}
       </Button>
     </div>
   );

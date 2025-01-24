@@ -4,16 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useTranslation } from 'react-i18next';
 
-const colors = [
-  { name: "Red", value: "#EF4444" },
-  { name: "Blue", value: "#3B82F6" },
-  { name: "Green", value: "#10B981" },
-  { name: "Yellow", value: "#F59E0B" },
-  { name: "Purple", value: "#8B5CF6" },
-  { name: "Orange", value: "#F97316" },
-  { name: "Pink", value: "#EC4899" },
-  { name: "Cyan", value: "#06B6D4" },
-];
+
 
 const INITIAL_TIME = 30;
 const COMBO_THRESHOLD = 3;
@@ -31,12 +22,22 @@ const ColorMatch = () => {
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   const [combo, setCombo] = useState(0);
   const [difficulty, setDifficulty] = useState(1);
+  const colors = [
+    { name: t('game.color.colors.red'), value: "#EF4444" },
+    { name: t('game.color.colors.blue'), value: "#3B82F6" },
+    { name: t('game.color.colors.green'), value: "#10B981" },
+    { name: t('game.color.colors.yellow'), value: "#F59E0B" },
+    { name: t('game.color.colors.purple'), value: "#8B5CF6" },
+    { name: t('game.color.colors.orange'), value: "#F97316" },
+    { name: t('game.color.colors.pink'), value: "#EC4899" },
+    { name: t('game.color.colors.cyan'), value: "#06B6D4" },
+  ];
 
   const generateNewRound = () => {
     const textColor = colors[Math.floor(Math.random() * colors.length)];
     let displayColor;
     
-    // 根据难度增加匹配概率
+    // Increase matching probability based on difficulty
     if (Math.random() < 0.3 + (difficulty * 0.1)) {
       displayColor = textColor;
     } else {
@@ -64,24 +65,24 @@ const ColorMatch = () => {
       const newCombo = combo + 1;
       setCombo(newCombo);
       
-      // 计算分数（包含连击奖励）
+      // Calculate score (including combo bonus)
       const comboBonus = Math.floor(newCombo / COMBO_THRESHOLD);
       const points = 1 + comboBonus;
       setScore((prev) => prev + points);
       
-      // 连击奖励提示
+      // Show combo bonus notification
       toast({
         title: t('game.color.correct'),
         description: comboBonus > 0 ? t('game.color.combo', { combo: newCombo }) : undefined,
         duration: 1000,
       });
       
-      // 每5分增加难度
+      // Increase difficulty every 5 points
       if (score > 0 && score % 5 === 0) {
         setDifficulty(prev => Math.min(prev + 1, 5));
       }
       
-      // 连击奖励额外时间
+      // Add bonus time for combo
       if (newCombo % COMBO_THRESHOLD === 0) {
         setTimeLeft(prev => prev + TIME_BONUS);
         toast({

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Timer, Award, List, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface Question {
   question: string;
@@ -11,37 +12,65 @@ interface Question {
   correctAnswer: number;
 }
 
-const questions: Question[] = [
+const getQuestions = (t: any): Question[] => [
   {
-    question: "What is the capital of France?",
-    options: ["London", "Berlin", "Paris", "Madrid"],
+    question: t('game.quiz.q1.question'),
+    options: [
+      t('game.quiz.q1.options.0'),
+      t('game.quiz.q1.options.1'),
+      t('game.quiz.q1.options.2'),
+      t('game.quiz.q1.options.3')
+    ],
     correctAnswer: 2,
   },
   {
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
+    question: t('game.quiz.q2.question'),
+    options: [
+      t('game.quiz.q2.options.0'),
+      t('game.quiz.q2.options.1'),
+      t('game.quiz.q2.options.2'),
+      t('game.quiz.q2.options.3')
+    ],
     correctAnswer: 1,
   },
   {
-    question: "What is the largest mammal in the world?",
-    options: ["African Elephant", "Blue Whale", "Giraffe", "Polar Bear"],
+    question: t('game.quiz.q3.question'),
+    options: [
+      t('game.quiz.q3.options.0'),
+      t('game.quiz.q3.options.1'),
+      t('game.quiz.q3.options.2'),
+      t('game.quiz.q3.options.3')
+    ],
     correctAnswer: 1,
   },
   {
-    question: "Who painted the Mona Lisa?",
-    options: ["Van Gogh", "Da Vinci", "Picasso", "Rembrandt"],
+    question: t('game.quiz.q4.question'),
+    options: [
+      t('game.quiz.q4.options.0'),
+      t('game.quiz.q4.options.1'),
+      t('game.quiz.q4.options.2'),
+      t('game.quiz.q4.options.3')
+    ],
     correctAnswer: 1,
   },
   {
-    question: "What is the chemical symbol for gold?",
-    options: ["Ag", "Fe", "Au", "Cu"],
+    question: t('game.quiz.q5.question'),
+    options: [
+      t('game.quiz.q5.options.0'),
+      t('game.quiz.q5.options.1'),
+      t('game.quiz.q5.options.2'),
+      t('game.quiz.q5.options.3')
+    ],
     correctAnswer: 2,
   },
 ];
 
+
 const QuickQuiz = () => {
+  const { t } = useTranslation();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
+  const questions = getQuestions(t);
   const [timeLeft, setTimeLeft] = useState(15);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -86,8 +115,8 @@ const QuickQuiz = () => {
     if (correct) {
       setScore((prev) => prev + 1);
       toast({
-        title: "Correct!",
-        description: "+1 point",
+        title: t('game.quiz.correct'),
+        description: t('game.quiz.point'),
         duration: 1500,
       });
     }
@@ -108,8 +137,8 @@ const QuickQuiz = () => {
     setGameOver(true);
     setGameStarted(false);
     toast({
-      title: "Game Over!",
-      description: `Final Score: ${score}/${questions.length}`,
+      title: t('game.quiz.gameOver'),
+      description: t('game.quiz.finalScore', { score, total: questions.length }),
       duration: 3000,
     });
   };
@@ -119,21 +148,21 @@ const QuickQuiz = () => {
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <Card className="w-full max-w-lg p-6 space-y-6">
           <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold">Quick Quiz</h1>
+            <h1 className="text-3xl font-bold">{t('game.quiz.title')}</h1>
             {gameOver && (
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-2">
                   <Award className="w-6 h-6 text-primary" />
-                  <p className="text-xl">Final Score: {score}/{questions.length}</p>
+                  <p className="text-xl">{t('game.quiz.finalScore', { score, total: questions.length })}</p>
                 </div>
               </div>
             )}
             <p className="text-muted-foreground">
-              Test your knowledge with quick questions! You have 15 seconds per question.
+              {t('game.quiz.instruction')}
             </p>
           </div>
           <Button onClick={startGame} className="w-full">
-            {gameOver ? "Play Again" : "Start Game"}
+            {gameOver ? t('game.quiz.playAgain') : t('game.quiz.startGame')}
           </Button>
         </Card>
       </div>
@@ -145,59 +174,48 @@ const QuickQuiz = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <Card className="w-full max-w-lg p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{t('game.quiz.title')}</h1>
+            <div className="flex items-center gap-2">
+              <Timer className="w-5 h-5" />
+              <span className="text-xl">{timeLeft}s</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2">
             <List className="w-5 h-5" />
-            <span>Question {currentQuestion + 1}/{questions.length}</span>
+            <p className="text-lg">{t('game.quiz.question', { current: currentQuestion + 1, total: questions.length })}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Timer className="w-5 h-5" />
-            <span>{timeLeft}s</span>
-          </div>
+          <p className="text-2xl font-medium">{question.question}</p>
         </div>
 
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-center">{question.question}</h2>
-          <div className="grid gap-3">
-            {question.options.map((option, index) => (
-              <motion.button
-                key={index}
+        <div className="grid grid-cols-1 gap-3">
+          {question.options.map((option, index) => (
+            <motion.div key={index} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                className={`w-full text-left justify-start text-lg py-6 ${selectedAnswer === index ? (index === question.correctAnswer ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600') : ''}`}
+                variant={selectedAnswer === null ? 'outline' : 'secondary'}
                 onClick={() => handleAnswer(index)}
-                className={`p-4 rounded-lg border text-left transition-colors ${
-                  selectedAnswer === null
-                    ? "hover:bg-accent"
-                    : selectedAnswer === index
-                    ? index === question.correctAnswer
-                      ? "bg-green-500 text-white"
-                      : "bg-red-500 text-white"
-                    : index === question.correctAnswer
-                    ? "bg-green-500 text-white"
-                    : ""
-                }`}
                 disabled={selectedAnswer !== null}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
               >
-                <div className="flex items-center justify-between">
-                  <span>{option}</span>
-                  {selectedAnswer !== null && index === question.correctAnswer && (
-                    <Check className="w-5 h-5" />
-                  )}
-                  {selectedAnswer === index && index !== question.correctAnswer && (
-                    <X className="w-5 h-5" />
-                  )}
+                <div className="flex items-center gap-3">
+                  {selectedAnswer === index ? (
+                    index === question.correctAnswer ? (
+                      <Check className="w-5 h-5" />
+                    ) : (
+                      <X className="w-5 h-5" />
+                    )
+                  ) : null}
+                  {option}
                 </div>
-              </motion.button>
-            ))}
-          </div>
+              </Button>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5" />
-            <span>Score: {score}</span>
-          </div>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <p>{t('game.quiz.score')}: {score}</p>
+          <p>{t('game.quiz.timeLeft')}: {timeLeft}s</p>
         </div>
       </Card>
     </div>
