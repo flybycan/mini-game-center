@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   base: "/mini-game-center/",
   server: {
-    host: "::",
+    host: "localhost",
     port: 8080,
   },
   plugins: [

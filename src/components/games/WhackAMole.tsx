@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const GRID_SIZE = 9; // 3x3 grid
 const GAME_DURATION = 30; // 30 seconds
 const MOLE_INTERVAL = 1000; // New mole appears every second
 
 const WhackAMole = () => {
+  const { t } = useTranslation();
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -37,7 +39,7 @@ const WhackAMole = () => {
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem('whackamole-highscore', score.toString());
-      toast.success('New record!');
+      toast.success(t('common.newRecord'));
     }
   }, [score, highScore]);
 
@@ -73,14 +75,14 @@ const WhackAMole = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Target className="w-5 h-5" />
-          Whack-a-mole
+          {t('game.whack.title')}
         </h3>
-        <div className="text-sm">Top score: {highScore}</div>
+        <div className="text-sm">{t('common.highScore')}: {highScore}</div>
       </div>
 
       <div className="mb-4 flex justify-between items-center">
-        <div className="text-sm">score: {score}</div>
-        <div className="text-sm">time: {timeLeft}s</div>
+        <div className="text-sm">{t('common.score')}: {score}</div>
+        <div className="text-sm">{t('game.whack.time')}: {timeLeft}s</div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 aspect-square mb-4">
@@ -120,7 +122,7 @@ const WhackAMole = () => {
         onClick={startGame}
         disabled={isPlaying}
       >
-        {isPlaying ? 'Game in progress...' : 'Play the game'}
+        {isPlaying ? t('game.whack.inProgress') : t('common.start')}
       </Button>
     </Card>
   );

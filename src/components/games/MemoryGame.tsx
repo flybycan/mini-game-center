@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Gamepad2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type Card = {
   id: number;
@@ -14,6 +15,7 @@ type Card = {
 const EMOJIS = ['🎨', '🎮', '🎵', '💻', '📱', '🎯', '🎲', '🎪'];
 
 const MemoryGame = () => {
+  const { t } = useTranslation();
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [isChecking, setIsChecking] = useState(false);
@@ -81,10 +83,10 @@ const MemoryGame = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Gamepad2 className="w-5 h-5" />
-          Memory Game
+          {t('game.memory.title')}
         </h3>
         <Button variant="outline" size="sm" onClick={initializeGame}>
-          Reset
+          {t('common.reset')}
         </Button>
       </div>
       <div className="grid grid-cols-4 gap-2">

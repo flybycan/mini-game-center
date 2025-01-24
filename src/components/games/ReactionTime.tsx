@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Timer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from 'react-i18next';
 
 const ReactionTime = () => {
+  const { t } = useTranslation();
   const [state, setState] = useState<"waiting" | "ready" | "clicked">("waiting");
   const [startTime, setStartTime] = useState(0);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
@@ -27,8 +29,8 @@ const ReactionTime = () => {
   const handleClick = () => {
     if (state === "waiting") {
       toast({
-        title: "Too early!",
-        description: "Wait for the green color before clicking!",
+        title: t('game.reaction.tooEarly'),
+        description: t('game.reaction.waitForGreen'),
         variant: "destructive",
       });
       startGame();
@@ -41,8 +43,8 @@ const ReactionTime = () => {
       if (!bestTime || time < bestTime) {
         setBestTime(time);
         toast({
-          title: "New Best Time!",
-          description: `${time}ms - You've set a new record!`,
+          title: t('game.reaction.newRecord'),
+          description: t('game.reaction.recordDesc', { time }),
         });
       }
     } else {
@@ -58,7 +60,7 @@ const ReactionTime = () => {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
       <div className="flex items-center gap-2 text-2xl font-bold">
         <Timer className="w-6 h-6" />
-        <h1>Reaction Time Test</h1>
+        <h1>{t('game.reaction.title')}</h1>
       </div>
       
       <div 
@@ -70,16 +72,16 @@ const ReactionTime = () => {
         }`}
       >
         <p className="text-white text-xl font-bold text-center p-4">
-          {state === "waiting" ? "Wait..." :
-           state === "ready" ? "Click now!" :
-           reactionTime ? `${reactionTime}ms - Click to try again` :
-           "Click to start"}
+          {state === "waiting" ? t('game.reaction.wait') :
+           state === "ready" ? t('game.reaction.clickNow') :
+           reactionTime ? t('game.reaction.tryAgain', { time: reactionTime }) :
+           t('game.reaction.clickToStart')}
         </p>
       </div>
 
       {bestTime && (
         <div className="text-center">
-          <p className="text-lg font-semibold">Best Time: {bestTime}ms</p>
+          <p className="text-lg font-semibold">{t('game.reaction.bestTime', { time: bestTime })}</p>
         </div>
       )}
 

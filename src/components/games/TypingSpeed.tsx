@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 
 const words = [
   "react", "typescript", "javascript", "programming", 
@@ -12,6 +13,7 @@ const words = [
 
 const TypingSpeed = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [currentWord, setCurrentWord] = useState("");
   const [userInput, setUserInput] = useState("");
   const [score, setScore] = useState(0);
@@ -43,7 +45,7 @@ const TypingSpeed = () => {
       setUserInput("");
       setCurrentWord(getRandomWord());
       toast({
-        title: "right!",
+        title: t('game.typing.right'),
         duration: 1000,
       });
     }
@@ -60,8 +62,8 @@ const TypingSpeed = () => {
       if (score > bestScore) {
         setBestScore(score);
         toast({
-          title: "New Record!",
-          description: `Your highest score is: ${score}`,
+          title: t('game.typing.newRecord'),
+          description: t('game.typing.highScore', { score }),
         });
       }
     }
@@ -70,22 +72,22 @@ const TypingSpeed = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Typing speed</h1>
+        <h1 className="text-4xl font-bold">{t('game.typing.title')}</h1>
         <p className="text-muted-foreground">
-        Enter the displayed words quickly and accurately
+          {t('game.typing.instruction')}
         </p>
       </div>
 
       {!isPlaying ? (
         <Button onClick={startGame} size="lg">
-          Play the game
+          {t('game.typing.playGame')}
         </Button>
       ) : (
         <>
           <div className="text-center space-y-4">
-            <p className="text-2xl">time: {timeLeft}s</p>
-            <p className="text-xl">score: {score}</p>
-            <p className="text-sm text-muted-foreground">Top score: {bestScore}</p>
+            <p className="text-2xl">{t('game.typing.timeLeft', { time: timeLeft })}</p>
+            <p className="text-xl">{t('game.typing.currentScore', { score })}</p>
+            <p className="text-sm text-muted-foreground">{t('game.typing.topScore', { score: bestScore })}</p>
           </div>
 
           <div className="text-center space-y-8 w-full max-w-md">
@@ -98,7 +100,7 @@ const TypingSpeed = () => {
               type="text"
               value={userInput}
               onChange={handleInputChange}
-              placeholder="Enter the word..."
+              placeholder={t('game.typing.enterWord')}
               className="text-center text-xl"
               autoComplete="off"
             />

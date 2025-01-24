@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 const colors = [
   { name: "Red", value: "#EF4444" },
@@ -20,6 +21,7 @@ const TIME_BONUS = 2;
 
 const ColorMatch = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
   const [colorText, setColorText] = useState("");
@@ -69,8 +71,8 @@ const ColorMatch = () => {
       
       // 连击奖励提示
       toast({
-        title: "Correct! 🎯",
-        description: comboBonus > 0 ? `${newCombo} combo! +${points} points` : undefined,
+        title: t('game.color.correct'),
+        description: comboBonus > 0 ? t('game.color.combo', { combo: newCombo }) : undefined,
         duration: 1000,
       });
       
@@ -83,15 +85,15 @@ const ColorMatch = () => {
       if (newCombo % COMBO_THRESHOLD === 0) {
         setTimeLeft(prev => prev + TIME_BONUS);
         toast({
-          title: "Time Bonus! ⌛",
-          description: `+${TIME_BONUS} seconds`,
+          title: t('game.color.timeBonus'),
+          description: t('game.color.timeBonusDesc', { seconds: TIME_BONUS }),
           duration: 1000,
         });
       }
     } else {
       setCombo(0);
       toast({
-        title: "Incorrect! ❌",
+        title: t('game.color.incorrect'),
         variant: "destructive",
         duration: 1000,
       });
@@ -110,8 +112,8 @@ const ColorMatch = () => {
       if (score > bestScore) {
         setBestScore(score);
         toast({
-          title: "New record!",
-          description: `Your highest score is: ${score}`,
+          title: t('game.color.newRecord'),
+          description: t('game.color.bestScore', { score }),
         });
       }
     }
@@ -120,9 +122,9 @@ const ColorMatch = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Color Challenge</h1>
+        <h1 className="text-4xl font-bold">{t('game.color.title')}</h1>
         <p className="text-muted-foreground">
-          Test your reflexes! Match the word with its displayed color
+          {t('game.color.instruction')}
         </p>
       </div>
 
@@ -143,7 +145,7 @@ const ColorMatch = () => {
             className="w-full py-8 text-xl font-bold transition-all duration-300"
             disabled={gameStarted}
           >
-            Start Game
+            {t('common.start')}
           </Button>
         </motion.div>
 
@@ -158,18 +160,18 @@ const ColorMatch = () => {
         >
           <div className="text-center space-y-4 mb-8">
             <div className="flex justify-center items-center gap-4">
-              <p className="text-2xl">Time: {timeLeft}s</p>
-              <p className="text-xl">Score: {score}</p>
+              <p className="text-2xl">{t('game.color.time')}: {timeLeft}s</p>
+              <p className="text-xl">{t('common.score')}: {score}</p>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <p className="text-sm text-muted-foreground">Personal Best: {bestScore}</p>
+              <p className="text-sm text-muted-foreground">{t('game.color.bestScore', { score: bestScore })}</p>
               {combo >= COMBO_THRESHOLD && (
                 <motion.p
                   initial={{ scale: 0.5 }}
                   animate={{ scale: 1 }}
                   className="text-sm font-semibold text-green-500"
                 >
-                  {combo} Combo! 🔥
+                  {t('game.color.combo', { combo })}
                 </motion.p>
               )}
             </div>
@@ -197,14 +199,14 @@ const ColorMatch = () => {
                 variant="outline"
                 onClick={() => handleAnswer(true)}
               >
-                Matching
+                {t('game.color.matching')}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => handleAnswer(false)}
               >
-                Mismatch
+                {t('game.color.mismatch')}
               </Button>
             </div>
           </motion.div>
@@ -218,12 +220,12 @@ const ColorMatch = () => {
             animate={{ scale: 1, opacity: 1 }}
             className="bg-card p-8 rounded-lg shadow-lg text-center space-y-4 max-w-sm w-full mx-4"
           >
-            <h2 className="text-2xl font-bold">Game Over!</h2>
+            <h2 className="text-2xl font-bold">{t('common.gameOver')}</h2>
             <div className="space-y-2">
-              <p className="text-lg">Final Score: {score}</p>
-              <p className="text-muted-foreground">Best Score: {bestScore}</p>
+              <p className="text-lg">{t('game.color.finalScore', { score })}</p>
+              <p className="text-muted-foreground">{t('game.color.bestScore', { score: bestScore })}</p>
               {combo >= COMBO_THRESHOLD && (
-                <p className="text-green-500">Max Combo: {combo} 🔥</p>
+                <p className="text-green-500">{t('game.color.maxCombo', { combo })}</p>
               )}
             </div>
             <Button 
@@ -231,7 +233,7 @@ const ColorMatch = () => {
               size="lg"
               className="w-full"
             >
-              Play Again
+              {t('game.quiz.playAgain')}
             </Button>
           </motion.div>
         </div>

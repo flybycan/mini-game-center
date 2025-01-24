@@ -3,6 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Shapes } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 type Item = {
   id: string;
@@ -15,6 +16,7 @@ const GRID_SIZE = 8;
 
 const MatchThree = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [score, setScore] = useState(0);
   const [selectedItem, setSelectedItem] = useState<[number, number] | null>(null);
   const [grid, setGrid] = useState<Item[][]>([]);
@@ -140,8 +142,8 @@ const MatchThree = () => {
         setGrid(newGrid);
         setIsSwapping(false);
         toast({
-          title: "Invalid move",
-          description: "Try to match three or more items",
+          title: t('game.match3.invalidMove'),
+          description: t('game.match3.tryMatch'),
           variant: "destructive",
         });
       }, 300);
@@ -158,10 +160,10 @@ const MatchThree = () => {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
       <div className="flex items-center gap-2 text-2xl font-bold">
         <Shapes className="w-6 h-6" />
-        <h1>Match Three</h1>
+        <h1>{t('game.match3.title')}</h1>
       </div>
 
-      <div className="text-xl font-bold">Score: {score}</div>
+      <div className="text-xl font-bold">{t('game.match3.score')}: {score}</div>
 
       <div className="grid gap-1 p-2 bg-accent rounded-lg">
         {grid.map((row, i) => (
@@ -186,7 +188,7 @@ const MatchThree = () => {
         setGrid(createGrid());
         setScore(0);
       }} variant="outline">
-        New Game
+        {t('game.match3.newGame')}
       </Button>
     </div>
   );

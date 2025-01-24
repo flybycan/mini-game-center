@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface TetrisBlock {
   shape: boolean[][];
@@ -70,6 +71,7 @@ const BOARD_HEIGHT = 20;
 const GAME_SPEED = 1000;
 
 const TetrisGame = () => {
+  const { t } = useTranslation();
   const [board, setBoard] = useState<string[][]>(
     Array(BOARD_HEIGHT).fill(Array(BOARD_WIDTH).fill(""))
   );
@@ -177,8 +179,8 @@ const TetrisGame = () => {
         const points = [0, 100, 300, 500, 800][completedLines];
         setScore(score => score + points);
         toast({
-          title: "Lines Cleared!",
-          description: `You cleared ${completedLines} lines! +${points} points`,
+          title: t('game.tetris.linesCleared'),
+          description: t('game.tetris.clearedLines', { lines: completedLines, points: points }),
         });
       }
 
@@ -187,8 +189,8 @@ const TetrisGame = () => {
       if (checkCollision(nextBlock, newBoard)) {
         setIsGameOver(true);
         toast({
-          title: "Game Over!",
-          description: `Final Score: ${score}`,
+          title: t('game.tetris.gameOver'),
+          description: t('game.tetris.finalScore', { score }),
           variant: "destructive",
         });
       } else {
@@ -268,12 +270,12 @@ const TetrisGame = () => {
   return (
     <div className="h-[calc(100vh-2rem)] flex flex-col items-center justify-center max-w-lg mx-auto px-4">
       <div className="flex-none mb-2">
-        <p className="text-xl font-bold mb-2">Score: {score}</p>
+        <p className="text-xl font-bold mb-2">{t('game.tetris.score')}: {score}</p>
         <div className="space-x-2">
           <Button onClick={() => setIsPaused(p => !p)}>
-            {isPaused ? "Resume" : "Pause"}
+            {isPaused ? t('game.tetris.resume') : t('game.tetris.pause')}
           </Button>
-          <Button onClick={resetGame}>New Game</Button>
+          <Button onClick={resetGame}>{t('game.tetris.newGame')}</Button>
         </div>
       </div>
 
@@ -287,11 +289,11 @@ const TetrisGame = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
           <div className="text-center space-y-4">
             <h2 className="text-3xl font-bold">
-              {isGameOver ? "Game Over!" : "Paused"}
+              {isGameOver ? t('game.tetris.gameOver') : t('game.tetris.paused')}
             </h2>
-            {isGameOver && <p className="text-xl">Final Score: {score}</p>}
+            {isGameOver && <p className="text-xl">{t('game.tetris.finalScore', { score })}</p>}
             <Button onClick={isGameOver ? resetGame : () => setIsPaused(false)}>
-              {isGameOver ? "Play Again" : "Resume"}
+              {isGameOver ? t('game.tetris.playAgain') : t('game.tetris.resume')}
             </Button>
           </div>
         </div>
@@ -300,10 +302,10 @@ const TetrisGame = () => {
       {/* Mobile Controls */}
       <div className="md:hidden flex-none mt-2 w-full max-w-[240px] grid grid-cols-3 gap-2">
         <Button size="sm" onClick={() => moveBlock(-1)}>←</Button>
-        <Button size="sm" onClick={rotateBlock}>Rotate</Button>
+        <Button size="sm" onClick={rotateBlock}>{t('game.tetris.rotate')}</Button>
         <Button size="sm" onClick={() => moveBlock(1)}>→</Button>
         <Button size="sm" onClick={dropBlock} className="col-span-3">
-          Drop
+          {t('game.tetris.drop')}
         </Button>
       </div>
     </div>

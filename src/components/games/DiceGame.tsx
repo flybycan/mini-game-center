@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dices, Trophy, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const DiceGame = () => {
+  const { t } = useTranslation();
   const [diceCount, setDiceCount] = useState(2);
   const [diceValues, setDiceValues] = useState<number[]>(Array(2).fill(1));
   const [isRolling, setIsRolling] = useState(false);
@@ -32,7 +34,7 @@ const DiceGame = () => {
     
     // 当只有一个骰子时，直接返回点数
     if (values.length === 1) {
-      toast.success(`Earned ${points} points`);
+      toast.success(t('game.dice.earned', { points }));
       return points;
     }
     
@@ -43,7 +45,7 @@ const DiceGame = () => {
     // 检查全相同
     if (uniqueValues.size === 1) {
       points *= 3;
-      toast.success(`All same! Score x3! Earned ${points} points`);
+      toast.success(t('game.dice.allSame', { points }));
       return points;
     }
     
@@ -58,7 +60,7 @@ const DiceGame = () => {
     
     if (isSequence) {
       points += values.length * 5;
-      toast.success(`Sequence! Bonus +${values.length * 5}! Total ${points} points`);
+      toast.success(t('game.dice.sequence', { bonus: values.length * 5, points }));
       return points;
     }
     
@@ -75,7 +77,7 @@ const DiceGame = () => {
     
     if (maxPairCount > 1) {
       points *= maxPairCount;
-      toast.success(`${maxPairCount} of a kind! Score x${maxPairCount}! Earned ${points} points`);
+      toast.success(t('game.dice.ofAKind', { count: maxPairCount, points }));
       return points;
     }
     
@@ -126,7 +128,7 @@ const DiceGame = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Dices className="w-5 h-5" />
-          Dice game
+          {t('game.dice.title')}
         </h3>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 text-sm">
@@ -141,7 +143,7 @@ const DiceGame = () => {
               setScore(0);
             }}
           >
-            Reset
+            {t('common.reset')}
           </Button>
         </div>
       </div>
@@ -155,7 +157,7 @@ const DiceGame = () => {
         >
           <Minus className="w-4 h-4" />
         </Button>
-        <span className="text-sm font-medium">{diceCount} Dice</span>
+        <span className="text-sm font-medium">{t('game.dice.diceCount', { count: diceCount })}</span>
         <Button 
           variant="outline" 
           size="sm" 
@@ -188,12 +190,12 @@ const DiceGame = () => {
         onClick={rollDice} 
         disabled={isRolling}
       >
-        {isRolling ? 'Rolling...' : 'Roll the dice'}
+        {isRolling ? t('game.dice.rolling') : t('game.dice.rollButton')}
       </Button>
 
       <div className="text-sm text-muted-foreground mt-4 text-center space-y-1">
-        <p>Current Score: {score}</p>
-        <p>Total Rolls: {rolls}</p>
+        <p>{t('game.dice.currentScore')}: {score}</p>
+        <p>{t('game.dice.totalRolls')}: {rolls}</p>
       </div>
     </Card>
   );

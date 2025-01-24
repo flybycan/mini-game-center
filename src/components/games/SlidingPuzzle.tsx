@@ -3,10 +3,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Puzzle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const GRID_SIZE = 3;
 
 const SlidingPuzzle = () => {
+  const { t } = useTranslation();
   const [tiles, setTiles] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
 
@@ -55,10 +57,10 @@ const SlidingPuzzle = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Puzzle className="w-5 h-5" />
-          Sliding Puzzle
+          {t('game.sliding.title')}
         </h3>
         <Button variant="outline" size="sm" onClick={initializeGame}>
-          Reset
+          {t('common.reset')}
         </Button>
       </div>
       <div className="grid grid-cols-3 gap-2 aspect-square">

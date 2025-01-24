@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { 
   Gamepad2, 
   Puzzle, 
@@ -52,10 +53,10 @@ export const games = [
     available: true,
   },
   {
-    id: "bubble",
-    title: "Bubble Pop",
-    description: "Pop colorful bubbles in this relaxing game",
-    icon: <Circle className="w-6 h-6" />,
+    id: "2048",
+    title: "2048",
+    description: "Classic number merging puzzle game",
+    icon: <Blocks className="w-6 h-6" />,
     available: true,
   },
   {
@@ -103,12 +104,13 @@ export const games = [
 ];
 
 const GameGrid = () => {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
       {games.map((game) => (
         <Link 
           key={game.id} 
-          to={`/games/${game.id}`}
+          to={`/mini-game-center/games/${game.id}`}
           className={!game.available ? "pointer-events-none opacity-50" : ""}
         >
           <Card className="p-6 hover:bg-accent transition-colors group h-full">
@@ -116,9 +118,9 @@ const GameGrid = () => {
               <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {game.icon}
               </div>
-              <h3 className="text-xl font-semibold">{game.title}</h3>
+              <h3 className="text-xl font-semibold">{t(`game.${game.id}.title`)}</h3>
             </div>
-            <p className="text-muted-foreground">{game.description}</p>
+            <p className="text-muted-foreground">{t(`game.${game.id}.desc`)}</p>
             {!game.available && (
               <p className="text-sm text-muted-foreground mt-4 italic">Coming soon</p>
             )}

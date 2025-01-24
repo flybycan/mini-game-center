@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 type Position = { x: number; y: number };
@@ -25,6 +26,7 @@ const getRandomInitialPosition = (): Position => {
 const INITIAL_SNAKE: Position[] = [getRandomInitialPosition()];
 
 const SnakeGame = () => {
+  const { t } = useTranslation();
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>({ x: 15, y: 15 });
   const [direction, setDirection] = useState<Direction>('RIGHT');
@@ -105,9 +107,9 @@ const SnakeGame = () => {
       if (score > highScore) {
         setHighScore(score);
         localStorage.setItem('snake-highscore', score.toString());
-        toast.success('New Record!');
+        toast.success(t('game.snake.newRecord'));
       }
-      toast.error('Game Over!');
+      toast.error(t('game.snake.gameOver'));
       return;
     }
 
@@ -222,9 +224,9 @@ const SnakeGame = () => {
     <Card className="p-6 w-full max-w-md mx-auto flex flex-col gap-4 min-h-[80vh]">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <p className="text-lg font-semibold">Score: {score}</p>
-          <p className="text-sm text-muted-foreground">High Score: {highScore}</p>
-          <p className="text-xs text-muted-foreground">Speed: {Math.round(1000 / getCurrentSpeed())}x</p>
+          <p className="text-lg font-semibold">{t('game.snake.score')}: {score}</p>
+          <p className="text-sm text-muted-foreground">{t('game.snake.highScore')}: {highScore}</p>
+          <p className="text-xs text-muted-foreground">{t('game.snake.speed')}: {Math.round(1000 / getCurrentSpeed())}x</p>
         </div>
         <div className="space-x-2">
           {isPlaying && (
@@ -248,7 +250,7 @@ const SnakeGame = () => {
               }
             }}
           >
-            {isPlaying ? 'Reset' : 'Start Game'}
+            {isPlaying ? t('game.snake.resetGame') : t('game.snake.startGame')}
           </Button>
         </div>
       </div>
@@ -307,7 +309,7 @@ const SnakeGame = () => {
           <ArrowLeft className="w-6 h-6" />
         </Button>
         <div className="flex items-center justify-center text-sm font-medium text-muted-foreground">
-          Controls
+          {t('game.snake.controls')}
         </div>
         <Button
           variant="outline"
