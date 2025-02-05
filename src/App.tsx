@@ -37,7 +37,7 @@ const AppContent = () => {
   React.useEffect(() => {
     const hasLangParam = /\/(en|zh)$/.test(location.pathname);
     if (!hasLangParam) {
-      const newPath = `${location.pathname}/en`;
+      const newPath = `${location.pathname}en`;
       navigate(newPath);
       return;
     }
@@ -67,7 +67,7 @@ const AppContent = () => {
           </Button>
         )}
         <Routes>
-          <Route path="/" element={<Navigate to="/mini-game-center/:lang" replace />} />
+          <Route path="/:path(|mini-game-center|mini-game-center/)" element={<Navigate to="/mini-game-center/en" replace />} />
           <Route path="/mini-game-center/:lang" element={<Index />} />
           <Route path="/mini-game-center/about/:lang" element={<AboutPage />} />
           <Route path="/mini-game-center/games/memory/:lang" element={<MemoryGame />} />
