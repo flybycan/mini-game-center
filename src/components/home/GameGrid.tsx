@@ -104,13 +104,13 @@ export const games = [
 ];
 
 const GameGrid = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
       {games.map((game) => (
         <Link 
           key={game.id} 
-          to={`/mini-game-center/games/${game.id}`}
+          to={`/mini-game-center/games/${game.id}/${i18n.language}`}
           className={!game.available ? "pointer-events-none opacity-50" : ""}
         >
           <Card className="p-6 hover:bg-accent transition-colors group h-full">

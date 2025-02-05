@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,38 +30,58 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const isGamePage = location.pathname.includes('/games/');
+
+  // 检查路径是否包含语言参数，如果没有则默认使用英语
+  React.useEffect(() => {
+    const hasLangParam = /\/(en|zh)$/.test(location.pathname);
+    if (!hasLangParam) {
+      const newPath = `${location.pathname}/en`;
+      navigate(newPath);
+      return;
+    }
+
+    // 更新语言设置
+    const currentLang = location.pathname.endsWith('/zh') ? 'zh' : 'en';
+    i18n.changeLanguage(currentLang);
+  }, [location.pathname, navigate, i18n]);
+
 
   return (
     <>
       {!isGamePage && <Navigation />}
 
-      <main className='mt-16 flex justify-center items-center relative'>
+      <main className='min-h-screen flex justify-center items-center relative'>
         {isGamePage && (
           <Button
             variant="ghost"
             size="icon"
             className="fixed top-4 left-4 z-50 bg-background/50 backdrop-blur-sm hover:bg-background/80"
-            onClick={() => navigate('/mini-game-center')}
+            onClick={() => {
+              const currentLang = location.pathname.endsWith('/zh') ? 'zh' : 'en';
+              navigate(`/mini-game-center/${currentLang}`);
+            }}
           >
             <ArrowLeft className="w-6 h-6" />
           </Button>
         )}
         <Routes>
-          <Route path="/mini-game-center" element={<Index />} />
-          <Route path="/mini-game-center/about" element={<AboutPage />} />
-          <Route path="/mini-game-center/games/memory" element={<MemoryGame />} />
-          <Route path="/mini-game-center/games/sliding" element={<SlidingPuzzle />} />
-          <Route path="/mini-game-center/games/dice" element={<DiceGame />} />
-          <Route path="/mini-game-center/games/whack" element={<WhackAMole />} />
-          <Route path="/mini-game-center/games/snake" element={<SnakeGame />} />
-          <Route path="/mini-game-center/games/2048" element={<Game2048 />} />
-          <Route path="/mini-game-center/games/tetris" element={<TetrisGame />} />
-          <Route path="/mini-game-center/games/reaction" element={<ReactionTime />} />
-          <Route path="/mini-game-center/games/match3" element={<MatchThree />} />
-          <Route path="/mini-game-center/games/quiz" element={<QuickQuiz />} />
-          <Route path="/mini-game-center/games/color" element={<ColorMatch />} />
-          <Route path="/mini-game-center/games/typing" element={<TypingSpeed />} />
+          <Route path="/" element={<Navigate to="/mini-game-center/:lang" replace />} />
+          <Route path="/mini-game-center/:lang" element={<Index />} />
+          <Route path="/mini-game-center/about/:lang" element={<AboutPage />} />
+          <Route path="/mini-game-center/games/memory/:lang" element={<MemoryGame />} />
+          <Route path="/mini-game-center/games/sliding/:lang" element={<SlidingPuzzle />} />
+          <Route path="/mini-game-center/games/dice/:lang" element={<DiceGame />} />
+          <Route path="/mini-game-center/games/whack/:lang" element={<WhackAMole />} />
+          <Route path="/mini-game-center/games/snake/:lang" element={<SnakeGame />} />
+          <Route path="/mini-game-center/games/2048/:lang" element={<Game2048 />} />
+          <Route path="/mini-game-center/games/tetris/:lang" element={<TetrisGame />} />
+          <Route path="/mini-game-center/games/reaction/:lang" element={<ReactionTime />} />
+          <Route path="/mini-game-center/games/match3/:lang" element={<MatchThree />} />
+          <Route path="/mini-game-center/games/quiz/:lang" element={<QuickQuiz />} />
+          <Route path="/mini-game-center/games/color/:lang" element={<ColorMatch />} />
+          <Route path="/mini-game-center/games/typing/:lang" element={<TypingSpeed />} />
         </Routes>
       </main>
     </>

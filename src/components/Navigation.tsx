@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [currentLang, setCurrentLang] = useState(i18n.language);
 
   useEffect(() => {
-    setCurrentLang(i18n.language);
-  }, [i18n.language]);
+    const lang = location.pathname.endsWith('/zh') ? 'zh' : 'en';
+    if (lang !== currentLang) {
+      setCurrentLang(lang);
+      i18n.changeLanguage(lang);
+    }
+  }, [location.pathname, currentLang, i18n]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,12 +27,25 @@ const Navigation = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const getLocalizedPath = (path: string) => {
+    const basePath = path.replace(/\/(en|zh)$/, '');
+    return `${basePath}/${currentLang}`;
+  };
+
+  console.log(currentLang,'sasas');
+  
+
+  const handleLanguageChange = () => {
+    const nextLang = currentLang === 'en' ? 'zh' : 'en';
+    const newPath = location.pathname.replace(/\/(en|zh)$/, `/${nextLang}`);
+    i18n.changeLanguage(nextLang);
+    setCurrentLang(nextLang);
+    navigate(newPath, { replace: true });
+  };
+
   const links = [
     { to: "/mini-game-center", label: t('nav.home') },
     { to: "/mini-game-center/about", label: t('nav.about') },
-    // { to: "/projects", label: "Projects" },
-    // { to: "/blog", label: "Blog" },
-    // { to: "/contact", label: "Contact" },
   ];
 
   return (
@@ -37,16 +55,16 @@ const Navigation = () => {
       }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
-        <Link to="/mini-game-center" className="text-xl font-semibold hover:opacity-80 transition-opacity">
+        <Link to={getLocalizedPath("/mini-game-center")} className="text-xl font-semibold hover:opacity-80 transition-opacity">
           {t('nav.title')}
         </Link>
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
             <Link
               key={link.to}
-              to={link.to}
+              to={getLocalizedPath(link.to)}
               className={`hover-link ${
-                location.pathname === link.to ? "after:w-full" : ""
+                location.pathname === getLocalizedPath(link.to) ? "after:w-full" : ""
               }`}
             >
               {link.label}
@@ -54,11 +72,7 @@ const Navigation = () => {
           ))}
           <Button
             variant="ghost"
-            onClick={() => {
-              const nextLang = currentLang === 'en' ? 'zh' : 'en';
-              setCurrentLang(nextLang);
-              i18n.changeLanguage(nextLang);
-            }}
+            onClick={handleLanguageChange}
             className="w-[120px] bg-background/40 backdrop-blur-md border-primary/20 hover:bg-background/60 transition-colors flex items-center justify-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
