@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
@@ -25,315 +25,427 @@ const getRandomInitialPosition = (): Position => {
 
 const INITIAL_SNAKE: Position[] = [getRandomInitialPosition()];
 
+type GameMode = 'SINGLE' | 'TWO_PLAYERS' | 'VS_AI';
+
+// 移动蛇的辅助函数
+const moveSnake = (snake: Position[], direction: Direction): Position[] => {
+  const head = snake[0];
+  const newHead = {
+    x: head.x + (direction === 'RIGHT' ? 1 : direction === 'LEFT' ? -1 : 0),
+    y: head.y + (direction === 'DOWN' ? 1 : direction === 'UP' ? -1 : 0)
+  };
+  return [newHead, ...snake.slice(0, -1)];
+};
+
+// 检查碰撞的辅助函数
+const checkCollision = (head: Position, obstacles: Position[]): boolean => {
+  return obstacles.some(pos => pos.x === head.x && pos.y === head.y) ||
+    head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE;
+};
+
 const SnakeGame = () => {
   const { t } = useTranslation();
-  const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
-  const [food, setFood] = useState<Position>({ x: 15, y: 15 });
-  const [direction, setDirection] = useState<Direction>('RIGHT');
+  const [gameMode, setGameMode] = useState<GameMode>('SINGLE');
+  const [snake1, setSnake1] = useState<Position[]>(INITIAL_SNAKE);
+  const [snake2, setSnake2] = useState<Position[]>([]);
+  const [direction1, setDirection1] = useState<Direction>('RIGHT');
+  const [direction2, setDirection2] = useState<Direction>('LEFT');
+  const [score1, setScore1] = useState(0);
+  const [score2, setScore2] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [score, setScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem('snake-highscore');
     return saved ? parseInt(saved) : 0;
   });
+  const [food, setFood] = useState<Position>({ x: 15, y: 15 });
 
   // 根据分数计算游戏速度
   const getCurrentSpeed = useCallback(() => {
-    return Math.max(BASE_SPEED - Math.floor(score / 5) * SPEED_INCREMENT, 50);
-  }, [score]);
+    return Math.max(BASE_SPEED - Math.floor(score1 / 5) * SPEED_INCREMENT, 50);
+  }, [score1]);
 
   const generateFood = useCallback(() => {
     const newFood = {
       x: Math.floor(Math.random() * GRID_SIZE),
       y: Math.floor(Math.random() * GRID_SIZE),
     };
-    // 确保食物不会生成在蛇身上
-    if (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
+    // 确保食物不会生成在任何蛇身上
+    if (snake1.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+        snake2.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
       generateFood();
       return;
     }
     setFood(newFood);
     // 播放食物生成音效
     new Audio('/food-appear.mp3').play().catch(() => {});
-  }, [snake]);
+  }, [snake1, snake2]);
 
   const resetGame = () => {
-    setSnake(INITIAL_SNAKE);
-    setDirection('RIGHT');
-    setScore(0);
+    setSnake1(INITIAL_SNAKE);
+    setSnake2([]);
+    setDirection1('RIGHT');
+    setDirection2('LEFT');
+    setScore1(0);
+    setScore2(0);
     setIsPlaying(false);
     setIsPaused(false);
+    setIsGameOver(false);
     generateFood();
   };
 
-  const checkCollision = (head: Position): boolean => {
-    // 检查墙壁碰撞
-    if (
-      head.x < 0 ||
-      head.x >= GRID_SIZE ||
-      head.y < 0 ||
-      head.y >= GRID_SIZE
-    ) {
-      return true;
+  const startGame = (mode: GameMode) => {
+    setGameMode(mode);
+    setSnake1(INITIAL_SNAKE);
+    if (mode !== 'SINGLE') {
+      const initialSnake2: Position[] = [{
+        x: GRID_SIZE - SAFE_MARGIN,
+        y: GRID_SIZE - SAFE_MARGIN
+      }];
+      setSnake2(initialSnake2);
+    } else {
+      setSnake2([]);
     }
-    // 检查自身碰撞
-    return snake.some((segment) => segment.x === head.x && segment.y === head.y);
+    setDirection1('RIGHT');
+    setDirection2('LEFT');
+    setScore1(0);
+    setScore2(0);
+    setIsPlaying(true);
+    setIsPaused(false);
+    setIsGameOver(false);
+    generateFood();
   };
 
-  const moveSnake = useCallback(() => {
+  const handleDirectionClick = (dir: Direction) => {
+    if (!isPlaying || isPaused) return;
+    
+    // 防止反向移动
+    if (dir === 'UP' && direction1 === 'DOWN') return;
+    if (dir === 'DOWN' && direction1 === 'UP') return;
+    if (dir === 'LEFT' && direction1 === 'RIGHT') return;
+    if (dir === 'RIGHT' && direction1 === 'LEFT') return;
+    
+    setDirection1(dir);
+  };
+
+  // AI方向决策函数
+  const getAIDirection = useCallback((snake: Position[], food: Position, otherSnake: Position[]): Direction => {
+    const head = snake[0];
+    const possibleMoves: Direction[] = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+    
+    // 首先过滤掉会导致碰撞的移动
+    const safeMoves = possibleMoves.filter(dir => {
+      const newHead = {
+        x: head.x + (dir === 'RIGHT' ? 1 : dir === 'LEFT' ? -1 : 0),
+        y: head.y + (dir === 'DOWN' ? 1 : dir === 'UP' ? -1 : 0)
+      };
+      return !checkCollision(newHead, [...snake.slice(1), ...otherSnake]);
+    });
+    
+    // 如果没有安全移动，返回任意方向（游戏会结束）
+    if (safeMoves.length === 0) return 'RIGHT';
+    
+    // 计算每个安全移动到食物的距离
+    const moveDistances = safeMoves.map(dir => {
+      const newHead = {
+        x: head.x + (dir === 'RIGHT' ? 1 : dir === 'LEFT' ? -1 : 0),
+        y: head.y + (dir === 'DOWN' ? 1 : dir === 'UP' ? -1 : 0)
+      };
+      // 计算曼哈顿距离
+      return {
+        direction: dir,
+        distance: Math.abs(newHead.x - food.x) + Math.abs(newHead.y - food.y)
+      };
+    });
+    
+    // 按距离排序并选择最短的
+    moveDistances.sort((a, b) => a.distance - b.distance);
+    return moveDistances[0].direction;
+  }, []);
+
+  // 游戏主循环
+  useEffect(() => {
     if (!isPlaying || isPaused) return;
 
-    const head = { ...snake[0] };
-    switch (direction) {
-      case 'UP':
-        head.y -= 1;
-        break;
-      case 'DOWN':
-        head.y += 1;
-        break;
-      case 'LEFT':
-        head.x -= 1;
-        break;
-      case 'RIGHT':
-        head.x += 1;
-        break;
-    }
+    const gameLoop = setInterval(() => {
+      setSnake1(prevSnake => {
+        const newSnake = moveSnake(prevSnake, direction1);
+        const head = newSnake[0];
 
-    if (checkCollision(head)) {
-      setIsPlaying(false);
-      // 播放游戏结束音效
-      new Audio('/game-over.mp3').play().catch(() => {});
-      if (score > highScore) {
-        setHighScore(score);
-        localStorage.setItem('snake-highscore', score.toString());
-        toast.success(t('game.snake.newRecord'));
+        if (checkCollision(head, [...prevSnake.slice(1), ...snake2])) {
+          toast.error(t('game.snake.player1Lost'));
+          // 更新高分记录
+          if (score1 > highScore) {
+            setHighScore(score1);
+            localStorage.setItem('snake-highscore', score1.toString());
+          }
+          setIsGameOver(true);
+          setIsPlaying(false);
+          return prevSnake;
+        }
+
+        if (head.x === food.x && head.y === food.y) {
+          setScore1(s => s + 1);
+          generateFood();
+          return [head, ...prevSnake];
+        }
+
+        return newSnake;
+      });
+
+      if (gameMode !== 'SINGLE') {
+        setSnake2(prevSnake => {
+          if (!prevSnake.length) return prevSnake;
+
+          const newDirection = gameMode === 'VS_AI' ?
+            getAIDirection(prevSnake, food, snake1) : direction2;
+
+          const newSnake = moveSnake(prevSnake, newDirection);
+          const head = newSnake[0];
+
+          if (checkCollision(head, [...prevSnake.slice(1), ...snake1])) {
+            toast.error(t('game.snake.player2Lost'));
+            // 更新高分记录
+            if (score1 > highScore) {
+              setHighScore(score1);
+              localStorage.setItem('snake-highscore', score1.toString());
+            }
+            setIsGameOver(true);
+            setIsPlaying(false);
+            return prevSnake;
+          }
+
+          if (head.x === food.x && head.y === food.y) {
+            setScore2(s => s + 1);
+            generateFood();
+            return [head, ...prevSnake];
+          }
+
+          return newSnake;
+        });
       }
-      toast.error(t('game.snake.gameOver'));
-      return;
-    }
+    }, getCurrentSpeed());
 
-    const newSnake = [head, ...snake];
-    if (head.x === food.x && head.y === food.y) {
-      // 播放吃到食物音效
-      new Audio('/eat-food.mp3').play().catch(() => {});
-      setScore((prev) => prev + 1);
-      generateFood();
-    } else {
-      newSnake.pop();
-    }
-    setSnake(newSnake);
-  }, [snake, direction, food, isPlaying, isPaused, score, highScore, generateFood]);
+    return () => clearInterval(gameLoop);
+  }, [isPlaying, isPaused, direction1, direction2, gameMode, food, snake1, snake2, generateFood, getCurrentSpeed, getAIDirection, t, score1, highScore]);
 
+  // 键盘控制
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (!isPlaying) return;
-      
+      if (!isPlaying || isPaused) return;
+
+      // Player 1 controls (Arrow keys)
       switch (e.key) {
         case 'ArrowUp':
-          if (direction !== 'DOWN') setDirection('UP');
+          setDirection1(prev => prev !== 'DOWN' ? 'UP' : prev);
           break;
         case 'ArrowDown':
-          if (direction !== 'UP') setDirection('DOWN');
+          setDirection1(prev => prev !== 'UP' ? 'DOWN' : prev);
           break;
         case 'ArrowLeft':
-          if (direction !== 'RIGHT') setDirection('LEFT');
+          setDirection1(prev => prev !== 'RIGHT' ? 'LEFT' : prev);
           break;
         case 'ArrowRight':
-          if (direction !== 'LEFT') setDirection('RIGHT');
+          setDirection1(prev => prev !== 'LEFT' ? 'RIGHT' : prev);
           break;
-        case ' ':
-          setIsPaused(p => !p);
-          break;
+      }
+
+      // Player 2 controls (WASD)
+      if (gameMode === 'TWO_PLAYERS') {
+        switch (e.key.toLowerCase()) {
+          case 'w':
+            setDirection2(prev => prev !== 'DOWN' ? 'UP' : prev);
+            break;
+          case 's':
+            setDirection2(prev => prev !== 'UP' ? 'DOWN' : prev);
+            break;
+          case 'a':
+            setDirection2(prev => prev !== 'RIGHT' ? 'LEFT' : prev);
+            break;
+          case 'd':
+            setDirection2(prev => prev !== 'LEFT' ? 'RIGHT' : prev);
+            break;
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [direction, isPlaying]);
-
-  useEffect(() => {
-    if (!isPlaying || isPaused) return;
-    
-    const gameLoop = setInterval(moveSnake, getCurrentSpeed());
-    return () => clearInterval(gameLoop);
-  }, [moveSnake, isPlaying, isPaused, getCurrentSpeed]);
-
-  const handleDirectionClick = (newDirection: Direction) => {
-    if (!isPlaying || isPaused) return;
-    
-    switch (newDirection) {
-      case 'UP':
-        if (direction !== 'DOWN') setDirection('UP');
-        break;
-      case 'DOWN':
-        if (direction !== 'UP') setDirection('DOWN');
-        break;
-      case 'LEFT':
-        if (direction !== 'RIGHT') setDirection('LEFT');
-        break;
-      case 'RIGHT':
-        if (direction !== 'LEFT') setDirection('RIGHT');
-        break;
-    }
-  };
-
-  // 处理触摸滑动
-  useEffect(() => {
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isPlaying || isPaused) return;
-
-      const touchEndX = e.touches[0].clientX;
-      const touchEndY = e.touches[0].clientY;
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 50 && direction !== 'LEFT') {
-          setDirection('RIGHT');
-        } else if (deltaX < -50 && direction !== 'RIGHT') {
-          setDirection('LEFT');
-        }
-      } else {
-        if (deltaY > 50 && direction !== 'UP') {
-          setDirection('DOWN');
-        } else if (deltaY < -50 && direction !== 'DOWN') {
-          setDirection('UP');
-        }
-      }
-    };
-
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchmove', handleTouchMove);
-
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, [direction, isPlaying, isPaused]);
+  }, [isPlaying, isPaused, gameMode]);
 
   return (
     <Card className="p-6 w-full max-w-md mx-auto flex flex-col gap-4 min-h-[80vh]">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-lg font-semibold">{t('game.snake.score')}: {score}</p>
-          <p className="text-sm text-muted-foreground">{t('game.snake.highScore')}: {highScore}</p>
-          <p className="text-xs text-muted-foreground">{t('game.snake.speed')}: {Math.round(1000 / getCurrentSpeed())}x</p>
-        </div>
-        <div className="space-x-2">
-          {isPlaying && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsPaused(p => !p)}
-            >
-              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+      {!isPlaying && !isGameOver ? (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-center">{t('game.snake.title')}</h2>
+          <div className="grid grid-cols-1 gap-4">
+            <Button onClick={() => startGame('SINGLE')}>
+              {t('game.snake.singlePlayer')}
             </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (isPlaying) {
-                resetGame();
-              } else {
-                resetGame();
-                setIsPlaying(true);
-              }
+            <Button onClick={() => startGame('TWO_PLAYERS')}>
+              {t('game.snake.twoPlayers')}
+            </Button>
+            <Button onClick={() => startGame('VS_AI')}>
+              {t('game.snake.vsAI')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold">
+                {gameMode === 'SINGLE' ? 
+                  `${t('game.snake.score')}: ${score1}` : 
+                  `${t('game.snake.player1')}: ${score1}`
+                }
+              </p>
+              {gameMode !== 'SINGLE' && (
+                <p className="text-lg font-semibold">
+                  {`${gameMode === 'TWO_PLAYERS' ? t('game.snake.player2') : t('game.snake.ai')}: ${score2}`}
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground">{t('game.snake.highScore')}: {highScore}</p>
+            </div>
+            <div className="space-x-2">
+              {!isGameOver && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPaused(p => !p)}
+                >
+                  {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetGame}
+              >
+                {t('game.snake.resetGame')}
+              </Button>
+            </div>
+          </div>
+
+          <div 
+            className={`relative bg-secondary rounded-lg overflow-hidden mx-auto ${isPaused ? 'opacity-50' : ''}`}
+            style={{
+              width: GRID_SIZE * CELL_SIZE,
+              height: GRID_SIZE * CELL_SIZE,
+              maxWidth: '100%',
+              aspectRatio: '1',
             }}
           >
-            {isPlaying ? t('game.snake.resetGame') : t('game.snake.startGame')}
-          </Button>
-        </div>
-      </div>
+              {/* Player 1 Snake */}
+              {snake1.map((segment, index) => (
+                <div
+                  key={`p1-${index}`}
+                  className="absolute bg-primary rounded-sm"
+                  style={{
+                    width: CELL_SIZE - 1,
+                    height: CELL_SIZE - 1,
+                    left: segment.x * CELL_SIZE,
+                    top: segment.y * CELL_SIZE,
+                  }}
+                />
+              ))}
+              
+              {/* Player 2 Snake */}
+              {snake2.map((segment, index) => (
+                <div
+                  key={`p2-${index}`}
+                  className="absolute bg-blue-500 rounded-sm"
+                  style={{
+                    width: CELL_SIZE - 1,
+                    height: CELL_SIZE - 1,
+                    left: segment.x * CELL_SIZE,
+                    top: segment.y * CELL_SIZE,
+                  }}
+                />
+              ))}
+              
+              {/* Food */}
+              <div
+                className="absolute bg-destructive rounded-full"
+                style={{
+                  width: CELL_SIZE - 1,
+                  height: CELL_SIZE - 1,
+                  left: food.x * CELL_SIZE,
+                  top: food.y * CELL_SIZE,
+                }}
+              />
 
-      <div 
-        className={`relative bg-secondary rounded-lg overflow-hidden mx-auto ${isPaused ? 'opacity-50' : ''}`}
-        style={{
-          width: GRID_SIZE * CELL_SIZE,
-          height: GRID_SIZE * CELL_SIZE,
-          maxWidth: '100%',
-          aspectRatio: '1',
-        }}
-      >
-        {snake.map((segment, index) => (
-          <div
-            key={index}
-            className="absolute bg-primary rounded-sm"
-            style={{
-              width: CELL_SIZE - 1,
-              height: CELL_SIZE - 1,
-              left: segment.x * CELL_SIZE,
-              top: segment.y * CELL_SIZE,
-            }}
-          />
-        ))}
-        <div
-          className="absolute bg-destructive rounded-full"
-          style={{
-            width: CELL_SIZE - 1,
-            height: CELL_SIZE - 1,
-            left: food.x * CELL_SIZE,
-            top: food.y * CELL_SIZE,
-          }}
-        />
-      </div>
+              {/* Game Over Overlay */}
+              {isGameOver && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-4">
+                  <h2 className="text-2xl font-bold mb-4">{t('game.snake.gameOver')}</h2>
+                  <p className="text-xl mb-2">
+                    {gameMode === 'SINGLE' ? 
+                      `${t('game.snake.finalScore')}: ${score1}` : 
+                      `${t('game.snake.player1')}: ${score1}, ${gameMode === 'TWO_PLAYERS' ? t('game.snake.player2') : t('game.snake.ai')}: ${score2}`
+                    }
+                  </p>
+                  {score1 > highScore && (
+                    <p className="text-yellow-400 text-lg mb-4">{t('game.snake.newRecord')}!</p>
+                  )}
+                  <Button 
+                    onClick={() => startGame(gameMode)}
+                    className="mt-4"
+                  >
+                    {t('game.snake.playAgain')}
+                  </Button>
+                </div>
+              )}
+            </div>
 
-      <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto mt-auto">
-        <div />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleDirectionClick('UP')}
-          disabled={!isPlaying || isPaused}
-          className="aspect-square"
-        >
-          <ArrowUp className="w-6 h-6" />
-        </Button>
-        <div />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleDirectionClick('LEFT')}
-          disabled={!isPlaying || isPaused}
-          className="aspect-square"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </Button>
-        <div className="flex items-center justify-center text-sm font-medium text-muted-foreground">
-          {t('game.snake.controls')}
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleDirectionClick('RIGHT')}
-          disabled={!isPlaying || isPaused}
-          className="aspect-square"
-        >
-          <ArrowRight className="w-6 h-6" />
-        </Button>
-        <div />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleDirectionClick('DOWN')}
-          disabled={!isPlaying || isPaused}
-          className="aspect-square"
-        >
-          <ArrowDown className="w-6 h-6" />
-        </Button>
-        <div />
-      </div>
-
-
+            <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto mt-auto">
+              <div />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleDirectionClick('UP')}
+                disabled={!isPlaying || isPaused}
+                className="aspect-square"
+              >
+                <ArrowUp className="w-6 h-6" />
+              </Button>
+              <div />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleDirectionClick('LEFT')}
+                disabled={!isPlaying || isPaused}
+                className="aspect-square"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+              <div className="flex items-center justify-center text-sm font-medium text-muted-foreground">
+                {t('game.snake.controls')}
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleDirectionClick('RIGHT')}
+                disabled={!isPlaying || isPaused}
+                className="aspect-square"
+              >
+                <ArrowRight className="w-6 h-6" />
+              </Button>
+              <div />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleDirectionClick('DOWN')}
+                disabled={!isPlaying || isPaused}
+                className="aspect-square"
+              >
+                <ArrowDown className="w-6 h-6" />
+              </Button>
+              <div />
+            </div>
+        </>
+      )}
     </Card>
   );
 };
